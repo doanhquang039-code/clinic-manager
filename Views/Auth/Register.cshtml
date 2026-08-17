@@ -1,0 +1,107 @@
+@model MyMvcApp.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Đăng ký Bệnh nhân";
+}
+
+<div class="d-flex justify-content-center align-items-center py-4">
+    <div class="premium-card w-100" style="max-width: 600px;">
+        <div class="text-center mb-4">
+            <h2 class="page-title"><i class="fas fa-user-plus"></i> Đăng Ký Tài Khoản</h2>
+            <p class="text-muted">Dành riêng cho Bệnh nhân</p>
+        </div>
+
+        <form asp-action="Register">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info p-2 mb-3">
+                    @TempData["InfoMessage"]
+                </div>
+            }
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label asp-for="HoTen" class="form-label fw-bold"></label>
+                    <input asp-for="HoTen" class="form-control" placeholder="Nhập họ và tên..." />
+                    <span asp-validation-for="HoTen" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="NgaySinh" class="form-label fw-bold"></label>
+                    <input asp-for="NgaySinh" class="form-control" />
+                    <span asp-validation-for="NgaySinh" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="GioiTinh" class="form-label fw-bold"></label>
+                    <select asp-for="GioiTinh" class="form-select form-control">
+                        <option value="Nam">Nam</option>
+                        <option value="Nu">Nữ</option>
+                        <option value="Khac">Khác</option>
+                    </select>
+                    <span asp-validation-for="GioiTinh" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="SoDienThoai" class="form-label fw-bold"></label>
+                    <input asp-for="SoDienThoai" class="form-control" placeholder="Số điện thoại dùng để đăng nhập" />
+                    <span asp-validation-for="SoDienThoai" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label fw-bold"></label>
+                    <input asp-for="Email" class="form-control" placeholder="Email (Không bắt buộc)" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                
+                <div class="col-md-12 mb-3">
+                    <label asp-for="CCCD" class="form-label fw-bold"></label>
+                    <input asp-for="CCCD" class="form-control" placeholder="Nhập số CMND/CCCD" />
+                    <span asp-validation-for="CCCD" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="MatKhau" class="form-label fw-bold"></label>
+                    <input asp-for="MatKhau" class="form-control" placeholder="Tối thiểu 6 ký tự" />
+                    <span asp-validation-for="MatKhau" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <label asp-for="XacNhanMatKhau" class="form-label fw-bold"></label>
+                    <input asp-for="XacNhanMatKhau" class="form-control" placeholder="Nhập lại mật khẩu" />
+                    <span asp-validation-for="XacNhanMatKhau" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-premium btn-lg">Tạo Tài Khoản</button>
+            </div>
+
+            <div class="text-center mt-3 border-top pt-3">
+                <p class="mb-2 text-muted">Hoặc đăng ký nhanh bằng</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <button type="submit" form="external-google" class="btn btn-outline-danger btn-sm"><i class="fab fa-google"></i> Google</button>
+                    <button type="submit" form="external-github" class="btn btn-outline-dark btn-sm"><i class="fab fa-github"></i> GitHub</button>
+                    <button type="submit" form="external-microsoft" class="btn btn-outline-primary btn-sm"><i class="fab fa-microsoft"></i> Microsoft</button>
+                </div>
+                <p class="mb-0">Đã có tài khoản? <a asp-action="Login" class="text-primary fw-bold text-decoration-none">Đăng nhập ngay</a></p>
+            </div>
+        </form>
+
+        <form id="external-google" asp-action="ExternalLogin" method="post" style="display:none;">
+            <input type="hidden" name="provider" value="Google" />
+        </form>
+        <form id="external-github" asp-action="ExternalLogin" method="post" style="display:none;">
+            <input type="hidden" name="provider" value="GitHub" />
+        </form>
+        <form id="external-microsoft" asp-action="ExternalLogin" method="post" style="display:none;">
+            <input type="hidden" name="provider" value="Microsoft" />
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

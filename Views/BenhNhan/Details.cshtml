@@ -1,0 +1,64 @@
+@model MyMvcApp.Models.BenhNhan
+
+@{
+    ViewData["Title"] = "Chi tiết Bệnh nhân";
+}
+
+<div class="premium-card mx-auto" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="page-title mb-0">Hồ sơ Bệnh nhân</h3>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model?.MaBenhNhan" class="btn btn-premium me-2"><i class="fas fa-edit"></i> Sửa</a>
+            <a asp-action="Index" class="btn btn-light border"><i class="fas fa-arrow-left"></i> Quay lại</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1">Mã Bệnh nhân</p>
+            <h5 class="fw-bold">@Model.MaBenhNhan</h5>
+        </div>
+        <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1">Họ Tên</p>
+            <h5 class="fw-bold">@Model.HoTen</h5>
+        </div>
+        <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1">Ngày Sinh</p>
+            <h5 class="fw-bold">@Model.NgaySinh.ToString("dd/MM/yyyy")</h5>
+        </div>
+        <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1">Giới Tính</p>
+            <h5 class="fw-bold">
+                @if (Model.GioiTinh == "Nam") { <span class="badge bg-primary">Nam</span> }
+                else if (Model.GioiTinh == "Nu") { <span class="badge bg-danger">Nữ</span> }
+                else { <span class="badge bg-secondary">Khác</span> }
+            </h5>
+        </div>
+        <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1">Số điện thoại</p>
+            <h5 class="fw-bold">@(string.IsNullOrEmpty(Model.SoDienThoai) ? "---" : Model.SoDienThoai)</h5>
+        </div>
+        <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1">Email</p>
+            <h5 class="fw-bold">@(string.IsNullOrEmpty(Model.Email) ? "---" : Model.Email)</h5>
+        </div>
+        <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1">CCCD / CMND</p>
+            <h5 class="fw-bold">@(string.IsNullOrEmpty(Model.CCCD) ? "---" : Model.CCCD)</h5>
+        </div>
+        <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1">Ngày tạo hồ sơ</p>
+            <h5 class="fw-bold">@Model.NgayTao?.ToString("dd/MM/yyyy HH:mm")</h5>
+        </div>
+        <div class="col-md-12 mb-3">
+            <p class="text-muted mb-1">Địa chỉ</p>
+            <h5 class="fw-bold">@(string.IsNullOrEmpty(Model.DiaChi) ? "---" : Model.DiaChi)</h5>
+        </div>
+        <div class="col-md-12 mb-3">
+            <p class="text-muted mb-1">Tiền sử dị ứng</p>
+            <div class="p-3 bg-light rounded text-danger fw-bold">
+                @(string.IsNullOrEmpty(Model.DiUng) ? "Không có dữ liệu" : Model.DiUng)
+            </div>
+        </div>
+    </div>
+</div>

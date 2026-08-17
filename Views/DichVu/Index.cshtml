@@ -1,0 +1,42 @@
+@model IEnumerable<MyMvcApp.Models.DichVu>
+
+@{
+    ViewData["Title"] = "Danh mục Dịch vụ";
+}
+
+<div class="premium-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-title mb-0">Danh mục Dịch vụ</h2>
+        <a asp-action="Create" class="btn btn-premium">
+            <i class="fas fa-plus"></i> Thêm Dịch vụ
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table premium-table">
+            <thead>
+                <tr>
+                    <th>Tên Dịch Vụ</th>
+                    <th>Đơn Giá (VNĐ)</th>
+                    <th>Mô Tả</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">@item.TenDichVu</td>
+                        <td class="fw-bold">@item.DonGia.ToString("N0")</td>
+                        <td>@item.MoTa</td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@item.MaDichVu" class="btn btn-sm btn-outline-primary" title="Sửa">Sửa</a>
+                            <a asp-action="Details" asp-route-id="@item.MaDichVu" class="btn btn-sm btn-outline-info" title="Chi tiết">Chi tiết</a>
+                            <a asp-action="Delete" asp-route-id="@item.MaDichVu" class="btn btn-sm btn-outline-danger" title="Xóa">Xóa</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,54 @@
+@model MyMvcApp.Models.LichKham
+
+@{
+    ViewData["Title"] = "Chi Tiết Lịch Khám";
+}
+
+<div class="premium-card mx-auto" style="max-width: 600px;">
+    <h3 class="page-title mb-4"><i class="fas fa-info-circle"></i> Chi Tiết Lịch Khám</h3>
+
+    <dl class="row">
+        <dt class="col-sm-4 text-muted">Bệnh Nhân</dt>
+        <dd class="col-sm-8 fw-bold">@Model.BenhNhan?.HoTen</dd>
+
+        <dt class="col-sm-4 text-muted">Bác Sĩ</dt>
+        <dd class="col-sm-8 fw-bold">@Model.BacSi?.HoTen</dd>
+
+        <dt class="col-sm-4 text-muted">Ngày Khám</dt>
+        <dd class="col-sm-8">@Model.NgayKham.ToString("dd/MM/yyyy")</dd>
+
+        <dt class="col-sm-4 text-muted">Giờ Khám</dt>
+        <dd class="col-sm-8">@Model.GioKham.ToString(@"hh\:mm")</dd>
+
+        <dt class="col-sm-4 text-muted">Trạng Thái</dt>
+        <dd class="col-sm-8">
+            @if (Model.TrangThai == "ChoXacNhan")
+            {
+                <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+            }
+            else if (Model.TrangThai == "DaXacNhan")
+            {
+                <span class="badge bg-info text-dark">Đã xác nhận</span>
+            }
+            else if (Model.TrangThai == "DaKham")
+            {
+                <span class="badge bg-success">Đã khám</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">Đã hủy</span>
+            }
+        </dd>
+
+        <dt class="col-sm-4 text-muted">Lý Do / Triệu Chứng</dt>
+        <dd class="col-sm-8">@Model.LyDoKham</dd>
+
+        <dt class="col-sm-4 text-muted">Ngày Tạo</dt>
+        <dd class="col-sm-8">@Model.NgayTao?.ToString("dd/MM/yyyy HH:mm")</dd>
+    </dl>
+
+    <div class="mt-4 pt-3 border-top text-end">
+        <a asp-action="Edit" asp-route-id="@Model.MaLichKham" class="btn btn-outline-primary me-2"><i class="fas fa-edit"></i> Sửa</a>
+        <a asp-action="Index" class="btn btn-light border">Quay lại</a>
+    </div>
+</div>

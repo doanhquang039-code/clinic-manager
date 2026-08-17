@@ -1,0 +1,70 @@
+@model MyMvcApp.Models.LichKhamViewModel
+
+@{
+    ViewData["Title"] = "Đặt Lịch Khám";
+    var userType = User.Claims.FirstOrDefault(c => c.Type == "UserType")?.Value;
+    var isBenhNhan = userType == "BenhNhan";
+}
+
+<div class="premium-card mx-auto" style="max-width: 700px;">
+    <h3 class="page-title mb-4"><i class="fas fa-calendar-plus"></i> Đăng Ký Lịch Khám</h3>
+
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="row">
+            @if (isBenhNhan)
+            {
+                <input type="hidden" asp-for="LichKham.MaBenhNhan" />
+            }
+            else
+            {
+                <div class="col-md-12 mb-3">
+                    <label asp-for="LichKham.MaBenhNhan" class="form-label fw-bold">Bệnh Nhân <span class="text-danger">*</span></label>
+                    <select asp-for="LichKham.MaBenhNhan" asp-items="Model.BenhNhanList" class="form-select">
+                        <option value="">-- Chọn bệnh nhân --</option>
+                    </select>
+                    <span asp-validation-for="LichKham.MaBenhNhan" class="text-danger"></span>
+                </div>
+            }
+
+            <div class="col-md-12 mb-3">
+                <label asp-for="LichKham.MaBacSi" class="form-label fw-bold">Bác Sĩ <span class="text-danger">*</span></label>
+                <select asp-for="LichKham.MaBacSi" asp-items="Model.BacSiList" class="form-select">
+                    <option value="">-- Chọn bác sĩ --</option>
+                </select>
+                <span asp-validation-for="LichKham.MaBacSi" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="LichKham.NgayKham" class="form-label fw-bold">Ngày khám <span class="text-danger">*</span></label>
+                <input asp-for="LichKham.NgayKham" class="form-control" type="date" />
+                <span asp-validation-for="LichKham.NgayKham" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="LichKham.GioKham" class="form-label fw-bold">Giờ khám <span class="text-danger">*</span></label>
+                <input asp-for="LichKham.GioKham" class="form-control" type="time" />
+                <span asp-validation-for="LichKham.GioKham" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <label asp-for="LichKham.LyDoKham" class="form-label fw-bold">Lý do khám / Triệu chứng</label>
+                <textarea asp-for="LichKham.LyDoKham" class="form-control" rows="3" placeholder="Mô tả sơ bộ về tình trạng của bạn..."></textarea>
+                <span asp-validation-for="LichKham.LyDoKham" class="text-danger"></span>
+            </div>
+            
+            <input type="hidden" asp-for="LichKham.TrangThai" value="ChoXacNhan" />
+            <input type="hidden" asp-for="LichKham.NgayTao" value="@DateTime.Now" />
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-action="Index" class="btn btn-light border">Hủy bỏ</a>
+            <button type="submit" class="btn btn-premium">Đặt Lịch</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

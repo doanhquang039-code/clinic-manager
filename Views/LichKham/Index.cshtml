@@ -1,0 +1,109 @@
+@model IEnumerable<MyMvcApp.Models.LichKham>
+
+@{
+    ViewData["Title"] = "Quản lý Lịch Khám";
+    var userType = User.Claims.FirstOrDefault(c => c.Type == "UserType")?.Value;
+    var isNguoiDung = userType == "NguoiDung";
+}
+
+<div class="premium-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-title mb-0"><i class="fas fa-calendar-alt"></i> Quản lý Lịch Khám</h2>
+        <a asp-action="Create" class="btn btn-premium">
+            <i class="fas fa-plus"></i> Đặt Lịch Khám
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="table-responsive">
+        <table class="table premium-table">
+            <thead>
+                <tr>
+                    <th>Ngày Khám</th>
+                    <th>Giờ Khám</th>
+                    <th>Bệnh Nhân</th>
+                    <th>Bác Sĩ</th>
+                    <th>Lý Do</th>
+                    <th>Trạng Thái</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">@item.NgayKham.ToString("dd/MM/yyyy")</td>
+                        <td class="fw-bold">@item.GioKham.ToString(@"hh\:mm")</td>
+                        <td>@item.BenhNhan?.HoTen</td>
+                        <td>BS. @item.BacSi?.HoTen</td>
+                        <td>@(string.IsNullOrEmpty(item.LyDoKham) ? "---" : item.LyDoKham)</td>
+                        <td>
+                            @if (item.TrangThai == "ChoXacNhan")
+                            {
+                                <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Chờ xác nhận</span>
+                            }
+                            else if (item.TrangThai == "DaXacNhan")
+                            {
+                                <span class="badge bg-info text-dark"><i class="fas fa-check-circle"></i> Đã xác nhận</span>
+                            }
+                            else if (item.TrangThai == "DaKham")
+                            {
+                                <span class="badge bg-success"><i class="fas fa-stethoscope"></i> Đã khám</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Đã hủy</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (isNguoiDung)
+                            {
+                                <div class="dropdown d-inline-block me-1">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton_@item.MaLichKham" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Trạng thái
+                                    </button>
+                                    <ul class="dropdown-menu shadow" aria-labelledby="dropdownMenuButton_@item.MaLichKham">
+                                        <li>
+                                            <form asp-action="UpdateStatus" method="post">
+                                                <input type="hidden" name="id" value="@item.MaLichKham" />
+                                                <input type="hidden" name="status" value="DaXacNhan" />
+                                                <button type="submit" class="dropdown-item text-info"><i class="fas fa-check-circle"></i> Đã xác nhận</button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form asp-action="UpdateStatus" method="post">
+                                                <input type="hidden" name="id" value="@item.MaLichKham" />
+                                                <input type="hidden" name="status" value="DaKham" />
+                                                <button type="submit" class="dropdown-item text-success"><i class="fas fa-stethoscope"></i> Đã khám</button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form asp-action="UpdateStatus" method="post">
+                                                <input type="hidden" name="id" value="@item.MaLichKham" />
+                                                <input type="hidden" name="status" value="DaHuy" />
+                                                <button type="submit" class="dropdown-item text-danger"><i class="fas fa-times-circle"></i> Đã hủy</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                @if (item.TrangThai == "DaXacNhan")
+                                {
+                                    <a asp-controller="PhieuKham" asp-action="CreateFromLich" asp-route-maLichKham="@item.MaLichKham" class="btn btn-sm btn-success" title="Tạo Phiếu Khám"><i class="fas fa-file-medical"></i></a>
+                                }
+                            }
+
+                            <a asp-action="Edit" asp-route-id="@item.MaLichKham" class="btn btn-sm btn-outline-primary" title="Sửa"><i class="fas fa-edit"></i></a>
+                            <a asp-action="Details" asp-route-id="@item.MaLichKham" class="btn btn-sm btn-outline-info" title="Chi tiết"><i class="fas fa-eye"></i></a>
+                            <a asp-action="Delete" asp-route-id="@item.MaLichKham" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

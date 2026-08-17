@@ -1,0 +1,27 @@
+@model MyMvcApp.Models.LichKham
+
+@{
+    ViewData["Title"] = "Xóa Lịch Khám";
+}
+
+<div class="premium-card mx-auto" style="max-width: 600px;">
+    <h3 class="page-title text-danger mb-4"><i class="fas fa-exclamation-triangle"></i> Xóa Lịch Khám</h3>
+    
+    <div class="alert alert-danger">
+        Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa lịch khám này không?
+    </div>
+
+    <dl class="row mt-4">
+        <dt class="col-sm-4 text-muted">Bệnh Nhân</dt>
+        <dd class="col-sm-8 fw-bold">@Model.BenhNhan?.HoTen</dd>
+
+        <dt class="col-sm-4 text-muted">Ngày Khám</dt>
+        <dd class="col-sm-8">@Model.NgayKham.ToString("dd/MM/yyyy") @Model.GioKham.ToString(@"hh\:mm")</dd>
+    </dl>
+
+    <form asp-action="Delete" class="mt-4 pt-3 border-top text-end">
+        <input type="hidden" asp-for="MaLichKham" />
+        <a asp-action="Index" class="btn btn-light border me-2">Hủy bỏ</a>
+        <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Xác Nhận Xóa</button>
+    </form>
+</div>

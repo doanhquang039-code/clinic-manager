@@ -1,0 +1,41 @@
+@model MyMvcApp.Models.DichVu
+
+@{
+    ViewData["Title"] = "Sửa Dịch vụ";
+}
+
+<div class="premium-card mx-auto" style="max-width: 600px;">
+    <h3 class="page-title mb-4">Cập nhật Dịch vụ</h3>
+
+    <form asp-action="Edit">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="MaDichVu" />
+
+        <div class="mb-3">
+            <label asp-for="TenDichVu" class="form-label fw-bold">Tên Dịch vụ <span class="text-danger">*</span></label>
+            <input asp-for="TenDichVu" class="form-control" />
+            <span asp-validation-for="TenDichVu" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DonGia" class="form-label fw-bold">Đơn giá (VNĐ) <span class="text-danger">*</span></label>
+            <input asp-for="DonGia" class="form-control" type="number" step="1000" min="0" />
+            <span asp-validation-for="DonGia" class="text-danger"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="MoTa" class="form-label fw-bold">Mô tả chi tiết</label>
+            <textarea asp-for="MoTa" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="MoTa" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-action="Index" class="btn btn-light border">Hủy bỏ</a>
+            <button type="submit" class="btn btn-premium">Cập nhật</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

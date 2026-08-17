@@ -1,0 +1,51 @@
+@model IEnumerable<MyMvcApp.Models.PhieuKham>
+
+@{
+    ViewData["Title"] = "Quản lý Phiếu Khám";
+}
+
+<div class="premium-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-title mb-0"><i class="fas fa-file-medical-alt"></i> Quản lý Phiếu Khám</h2>
+        <a asp-action="Create" class="btn btn-premium">
+            <i class="fas fa-plus"></i> Tạo Phiếu Khám Mới
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="table-responsive">
+        <table class="table premium-table">
+            <thead>
+                <tr>
+                    <th>Mã Phiếu</th>
+                    <th>Ngày Khám</th>
+                    <th>Bệnh Nhân</th>
+                    <th>Bác Sĩ</th>
+                    <th>Chẩn Đoán</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold text-secondary">#@item.MaPhieuKham</td>
+                        <td class="fw-bold text-primary">@item.NgayKham?.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@item.BenhNhan?.HoTen</td>
+                        <td>BS. @item.BacSi?.HoTen</td>
+                        <td>@item.ChanDoan</td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@item.MaPhieuKham" class="btn btn-sm btn-outline-primary" title="Sửa"><i class="fas fa-edit"></i></a>
+                            <a asp-action="Details" asp-route-id="@item.MaPhieuKham" class="btn btn-sm btn-outline-info" title="Chi tiết"><i class="fas fa-eye"></i></a>
+                            <a asp-action="Delete" asp-route-id="@item.MaPhieuKham" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

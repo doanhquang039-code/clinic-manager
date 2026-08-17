@@ -1,0 +1,8 @@
+[Oo]bj/
+[Bb]in/
+appsettings.Development.json
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.log

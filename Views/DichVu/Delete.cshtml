@@ -1,0 +1,33 @@
+@model MyMvcApp.Models.DichVu
+
+@{
+    ViewData["Title"] = "Xóa Dịch vụ";
+}
+
+<div class="premium-card mx-auto" style="max-width: 600px;">
+    <h3 class="text-danger mb-4"><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+    
+    <p class="fs-5">Bạn có chắc chắn muốn xóa dịch vụ <strong>@Model.TenDichVu</strong> không?</p>
+    <p class="text-muted">Hành động này không thể hoàn tác.</p>
+
+    <div class="mt-4 p-3 bg-light rounded border">
+        <div class="row mb-2">
+            <div class="col-sm-4 fw-bold">Mã Dịch vụ:</div>
+            <div class="col-sm-8">@Model.MaDichVu</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-4 fw-bold">Tên Dịch vụ:</div>
+            <div class="col-sm-8 fw-bold">@Model.TenDichVu</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-4 fw-bold">Đơn giá:</div>
+            <div class="col-sm-8 text-success fw-bold">@Model.DonGia.ToString("N0") VNĐ</div>
+        </div>
+    </div>
+
+    <form asp-action="Delete" class="mt-4 d-flex justify-content-end gap-2">
+        <input type="hidden" asp-for="MaDichVu" />
+        <a asp-action="Index" class="btn btn-light border">Hủy bỏ</a>
+        <button type="submit" class="btn btn-premium-danger">Xác nhận xóa</button>
+    </form>
+</div>

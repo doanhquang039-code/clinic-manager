@@ -1,0 +1,66 @@
+@model MyMvcApp.Models.PhieuKhamViewModel
+
+@{
+    ViewData["Title"] = "Tạo Phiếu Khám";
+}
+
+<div class="premium-card mx-auto" style="max-width: 800px;">
+    <h3 class="page-title mb-4"><i class="fas fa-notes-medical"></i> Tạo Phiếu Khám Bệnh</h3>
+
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="PhieuKham.NgayKham" />
+
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label asp-for="PhieuKham.MaLichKham" class="form-label fw-bold">Thuộc Lịch Khám (Tùy chọn)</label>
+                <select asp-for="PhieuKham.MaLichKham" asp-items="Model.LichKhamList" class="form-select">
+                    <option value="">-- Không theo lịch --</option>
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="PhieuKham.MaBenhNhan" class="form-label fw-bold">Bệnh Nhân <span class="text-danger">*</span></label>
+                <select asp-for="PhieuKham.MaBenhNhan" asp-items="Model.BenhNhanList" class="form-select"></select>
+                <span asp-validation-for="PhieuKham.MaBenhNhan" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="PhieuKham.MaBacSi" class="form-label fw-bold">Bác Sĩ <span class="text-danger">*</span></label>
+                <select asp-for="PhieuKham.MaBacSi" asp-items="Model.BacSiList" class="form-select"></select>
+                <span asp-validation-for="PhieuKham.MaBacSi" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label asp-for="PhieuKham.TrieuChung" class="form-label fw-bold">Triệu Chứng</label>
+                <textarea asp-for="PhieuKham.TrieuChung" class="form-control" rows="2"></textarea>
+                <span asp-validation-for="PhieuKham.TrieuChung" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label asp-for="PhieuKham.ChanDoan" class="form-label fw-bold text-primary">Chẩn Đoán <span class="text-danger">*</span></label>
+                <textarea asp-for="PhieuKham.ChanDoan" class="form-control" rows="3" style="border-color: var(--primary-color)"></textarea>
+                <span asp-validation-for="PhieuKham.ChanDoan" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="PhieuKham.LoiDan" class="form-label fw-bold">Lời Dặn</label>
+                <textarea asp-for="PhieuKham.LoiDan" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label asp-for="PhieuKham.GhiChu" class="form-label fw-bold">Ghi Chú Khác</label>
+                <textarea asp-for="PhieuKham.GhiChu" class="form-control" rows="2"></textarea>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-action="Index" class="btn btn-light border">Hủy bỏ</a>
+            <button type="submit" class="btn btn-premium">Lưu Phiếu Khám</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

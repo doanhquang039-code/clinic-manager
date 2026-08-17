@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="premium-card text-center" style="max-width: 500px;">
+        <i class="fas fa-lock text-danger" style="font-size: 5rem; margin-bottom: 20px;"></i>
+        <h2 class="text-danger font-weight-bold">Truy Cập Bị Từ Chối</h2>
+        <p class="fs-5 text-muted mt-3">Xin lỗi, bạn không có quyền (Role) để truy cập vào trang này.</p>
+        
+        <div class="mt-4">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-premium"><i class="fas fa-home"></i> Trở về Trang chủ</a>
+        </div>
+    </div>
+</div>

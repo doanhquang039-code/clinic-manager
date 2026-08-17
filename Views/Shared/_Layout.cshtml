@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MyMvcApp</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MyMvcApp.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light navbar-premium mb-5">
+            <div class="container-fluid">
+                <a class="navbar-brand font-weight-bold" style="color: var(--primary-color);" asp-area="" asp-controller="Home" asp-action="Index">✨ Phòng Khám</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index"><i class="fas fa-home"></i> Trang chủ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="LichKham" asp-action="Index">
+                                <i class="fas fa-calendar-alt text-warning me-1"></i> Lịch Khám
+                            </a>
+                        </li>
+                        
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("LeTan") || User.IsInRole("BacSi"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="PhieuKham" asp-action="Index">
+                                    <i class="fas fa-notes-medical text-success me-1"></i> Phiếu Khám
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cogs text-secondary me-1"></i> Quản lý
+                                </a>
+                                <ul class="dropdown-menu border-0 shadow" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="NguoiDung" asp-action="Index"><i class="fas fa-user-shield me-2"></i>Nhân viên</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="BenhNhan" asp-action="Index"><i class="fas fa-procedures me-2"></i>Bệnh nhân</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="ChuyenKhoa" asp-action="Index"><i class="fas fa-clinic-medical me-2"></i>Chuyên khoa</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Thuoc" asp-action="Index"><i class="fas fa-pills me-2"></i>Thuốc</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="DichVu" asp-action="Index"><i class="fas fa-stethoscope me-2"></i>Dịch vụ</a></li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <span class="text-dark fw-bold"><i class="fas fa-user-circle text-primary"></i> Xin chào, @User.Identity.Name!</span>
+                                <span class="badge bg-info ms-2">@role</span>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-outline-danger btn-sm mt-1" asp-controller="Auth" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-primary" asp-controller="Auth" asp-action="Login">Đăng nhập</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-premium" asp-controller="Auth" asp-action="Register">Đăng ký</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2026 - MyMvcApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,55 @@
+@model MyMvcApp.Models.PhieuKham
+
+@{
+    ViewData["Title"] = "Chi Tiết Phiếu Khám";
+}
+
+<div class="premium-card mx-auto" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="page-title mb-0"><i class="fas fa-file-medical"></i> Phiếu Khám Bệnh #@Model.MaPhieuKham</h3>
+        <span class="badge bg-primary fs-6">@Model.NgayKham?.ToString("dd/MM/yyyy")</span>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h5 class="text-primary border-bottom pb-2 mb-3"><i class="fas fa-user-injured"></i> Thông Tin Bệnh Nhân</h5>
+            <dl class="row">
+                <dt class="col-sm-4 text-muted">Họ Tên</dt>
+                <dd class="col-sm-8 fw-bold">@Model.BenhNhan?.HoTen</dd>
+
+                <dt class="col-sm-4 text-muted">Số ĐT</dt>
+                <dd class="col-sm-8">@Model.BenhNhan?.SoDienThoai</dd>
+            </dl>
+        </div>
+        <div class="col-md-6">
+            <h5 class="text-primary border-bottom pb-2 mb-3"><i class="fas fa-user-md"></i> Thông Tin Bác Sĩ</h5>
+            <dl class="row">
+                <dt class="col-sm-4 text-muted">Bác Sĩ</dt>
+                <dd class="col-sm-8 fw-bold">BS. @Model.BacSi?.HoTen</dd>
+
+                <dt class="col-sm-4 text-muted">Mã Lịch Khám</dt>
+                <dd class="col-sm-8">@(Model.MaLichKham.HasValue ? $"#{Model.MaLichKham}" : "Khám tự do")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <h5 class="text-primary border-bottom pb-2 mb-3"><i class="fas fa-stethoscope"></i> Kết Quả Khám</h5>
+    <dl class="row bg-light p-3 rounded">
+        <dt class="col-sm-3 text-muted">Triệu Chứng</dt>
+        <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.TrieuChung) ? "---" : Model.TrieuChung)</dd>
+
+        <dt class="col-sm-3 text-primary">Chẩn Đoán</dt>
+        <dd class="col-sm-9 fw-bold text-primary">@Model.ChanDoan</dd>
+
+        <dt class="col-sm-3 text-muted">Lời Dặn</dt>
+        <dd class="col-sm-9 text-danger fw-bold">@(string.IsNullOrEmpty(Model.LoiDan) ? "---" : Model.LoiDan)</dd>
+
+        <dt class="col-sm-3 text-muted">Ghi Chú</dt>
+        <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.GhiChu) ? "---" : Model.GhiChu)</dd>
+    </dl>
+
+    <div class="mt-4 pt-3 border-top text-end">
+        <a asp-action="Edit" asp-route-id="@Model.MaPhieuKham" class="btn btn-outline-primary me-2"><i class="fas fa-edit"></i> Sửa Phiếu</a>
+        <a asp-action="Index" class="btn btn-light border">Quay lại danh sách</a>
+    </div>
+</div>

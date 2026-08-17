@@ -1,0 +1,99 @@
+@model MyMvcApp.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="premium-card w-100" style="max-width: 450px;">
+        <div class="text-center mb-4">
+            <h2 class="page-title"><i class="fas fa-stethoscope"></i> Hệ Thống Phòng Khám</h2>
+            <p class="text-muted">Đăng nhập để tiếp tục</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger p-2 mb-3">
+                <div asp-validation-summary="All" class="text-danger m-0" style="list-style-type: none;"></div>
+            </div>
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success p-2 mb-3">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+        
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="alert alert-info p-2 mb-3">
+                @TempData["InfoMessage"]
+            </div>
+        }
+
+        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Đăng nhập với tư cách:</label>
+                <div class="d-flex gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="LoaiTaiKhoan" value="BenhNhan" id="roleBenhNhan" checked>
+                        <label class="form-check-label" for="roleBenhNhan">Bệnh nhân</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="LoaiTaiKhoan" value="NguoiDung" id="roleNguoiDung">
+                        <label class="form-check-label" for="roleNguoiDung">Quản trị / Nhân viên</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label fw-bold"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-user text-primary"></i></span>
+                    <input asp-for="Username" class="form-control" placeholder="090... hoặc email@@..." />
+                </div>
+                <span asp-validation-for="Username" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label fw-bold"></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-lock text-primary"></i></span>
+                    <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-premium btn-lg">Đăng nhập</button>
+            </div>
+
+            <div class="text-center mt-4 border-top pt-3">
+                <p class="mb-2 text-muted">Hoặc đăng nhập bằng</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <button type="submit" form="external-google" class="btn btn-outline-danger"><i class="fab fa-google"></i> Google</button>
+                    <button type="submit" form="external-github" class="btn btn-outline-dark"><i class="fab fa-github"></i> GitHub</button>
+                    <button type="submit" form="external-microsoft" class="btn btn-outline-primary"><i class="fab fa-microsoft"></i> Microsoft</button>
+                </div>
+                <p class="mb-0">Bạn là bệnh nhân mới? <a asp-action="Register" class="text-primary fw-bold text-decoration-none">Đăng ký ngay</a></p>
+            </div>
+        </form>
+
+        <form id="external-google" asp-action="ExternalLogin" method="post" style="display:none;">
+            <input type="hidden" name="provider" value="Google" />
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+        </form>
+        <form id="external-github" asp-action="ExternalLogin" method="post" style="display:none;">
+            <input type="hidden" name="provider" value="GitHub" />
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+        </form>
+        <form id="external-microsoft" asp-action="ExternalLogin" method="post" style="display:none;">
+            <input type="hidden" name="provider" value="Microsoft" />
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

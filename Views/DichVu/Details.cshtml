@@ -1,0 +1,34 @@
+@model MyMvcApp.Models.DichVu
+
+@{
+    ViewData["Title"] = "Chi tiết Dịch vụ";
+}
+
+<div class="premium-card mx-auto" style="max-width: 600px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="page-title mb-0">Chi tiết Dịch vụ</h3>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model?.MaDichVu" class="btn btn-premium me-2"><i class="fas fa-edit"></i> Sửa</a>
+            <a asp-action="Index" class="btn btn-light border"><i class="fas fa-arrow-left"></i> Quay lại</a>
+        </div>
+    </div>
+
+    <div class="p-4 bg-light rounded border">
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted fw-bold">Mã Dịch vụ:</div>
+            <div class="col-sm-8 fw-bold">@Model.MaDichVu</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted fw-bold">Tên Dịch vụ:</div>
+            <div class="col-sm-8 fw-bold text-primary fs-5">@Model.TenDichVu</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted fw-bold">Đơn giá:</div>
+            <div class="col-sm-8 fw-bold fs-5 text-success">@Model.DonGia.ToString("N0") VNĐ</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-4 text-muted fw-bold">Mô tả:</div>
+            <div class="col-sm-8">@(string.IsNullOrEmpty(Model.MoTa) ? "---" : Model.MoTa)</div>
+        </div>
+    </div>
+</div>

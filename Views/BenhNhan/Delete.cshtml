@@ -1,0 +1,33 @@
+@model MyMvcApp.Models.BenhNhan
+
+@{
+    ViewData["Title"] = "Xóa Bệnh nhân";
+}
+
+<div class="premium-card mx-auto" style="max-width: 600px;">
+    <h3 class="text-danger mb-4"><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+    
+    <p class="fs-5">Bạn có chắc chắn muốn xóa bệnh nhân <strong>@Model.HoTen</strong> không?</p>
+    <p class="text-muted">Hành động này không thể hoàn tác.</p>
+
+    <div class="mt-4 p-3 bg-light rounded border">
+        <div class="row mb-2">
+            <div class="col-sm-4 fw-bold">Mã BN:</div>
+            <div class="col-sm-8">@Model.MaBenhNhan</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-4 fw-bold">Họ Tên:</div>
+            <div class="col-sm-8">@Model.HoTen</div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-4 fw-bold">Số điện thoại:</div>
+            <div class="col-sm-8">@Model.SoDienThoai</div>
+        </div>
+    </div>
+
+    <form asp-action="Delete" class="mt-4 d-flex justify-content-end gap-2">
+        <input type="hidden" asp-for="MaBenhNhan" />
+        <a asp-action="Index" class="btn btn-light border">Hủy bỏ</a>
+        <button type="submit" class="btn btn-premium-danger">Xác nhận xóa</button>
+    </form>
+</div>
