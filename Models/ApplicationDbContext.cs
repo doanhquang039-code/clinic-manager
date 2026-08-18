@@ -125,5 +125,32 @@ public class ApplicationDbContext : DbContext
             .WithMany(n => n.HoaDons)
             .HasForeignKey(h => h.MaNguoiLap)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Seeding Data
+        modelBuilder.Entity<ChuyenKhoa>().HasData(
+            new ChuyenKhoa { MaChuyenKhoa = 1, TenChuyenKhoa = "Khoa Nội", MoTa = "Chuyên khám và điều trị các bệnh nội khoa" },
+            new ChuyenKhoa { MaChuyenKhoa = 2, TenChuyenKhoa = "Khoa Ngoại", MoTa = "Chuyên phẫu thuật và điều trị các bệnh ngoại khoa" },
+            new ChuyenKhoa { MaChuyenKhoa = 3, TenChuyenKhoa = "Nhi khoa", MoTa = "Chuyên khám và điều trị bệnh cho trẻ em" },
+            new ChuyenKhoa { MaChuyenKhoa = 4, TenChuyenKhoa = "Sản phụ khoa", MoTa = "Chuyên khám và điều trị các bệnh phụ khoa, thai sản" },
+            new ChuyenKhoa { MaChuyenKhoa = 5, TenChuyenKhoa = "Nha khoa", MoTa = "Chuyên khám và điều trị các bệnh răng hàm mặt" },
+            new ChuyenKhoa { MaChuyenKhoa = 6, TenChuyenKhoa = "Da liễu", MoTa = "Chuyên khám và điều trị các bệnh về da" }
+        );
+
+        modelBuilder.Entity<NguoiDung>().HasData(
+            new NguoiDung { MaNguoiDung = 1, HoTen = "Quản trị viên Hệ thống", SoDienThoai = "0999999999", Email = "admin@medicore.com", MatKhau = "123456", Role = "Admin", TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 2, HoTen = "Giám đốc Điều hành", SoDienThoai = "0988888888", Email = "manager@medicore.com", MatKhau = "123456", Role = "Manager", TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 3, HoTen = "Lễ Tân Số 1", SoDienThoai = "0977777777", Email = "letan1@medicore.com", MatKhau = "123456", Role = "LeTan", TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 4, HoTen = "Lễ Tân Số 2", SoDienThoai = "0966666666", Email = "letan2@medicore.com", MatKhau = "123456", Role = "LeTan", TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 5, HoTen = "BS. Nguyễn Minh Khoa", SoDienThoai = "0911111111", Email = "khoanm@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 1, TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 6, HoTen = "ThS.BS. Trần Hữu Lan", SoDienThoai = "0922222222", Email = "lanth@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 2, TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 7, HoTen = "BS.CKII. Lê Quốc Minh", SoDienThoai = "0933333333", Email = "minhlq@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 3, TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 8, HoTen = "BS. Phạm Hoàng Phúc", SoDienThoai = "0944444444", Email = "phucph@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 4, TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 9, HoTen = "BS. Võ Thị Tuyết", SoDienThoai = "0955555555", Email = "tuyetvt@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 5, TrangThai = false, NgayTao = new DateTime(2026, 1, 1) }
+        );
+
+        modelBuilder.Entity<BenhNhan>().HasData(
+            new BenhNhan { MaBenhNhan = 1, HoTen = "Bệnh Nhân VIP", NgaySinh = new DateTime(1990, 1, 1), GioiTinh = "Nam", SoDienThoai = "0811111111", Email = "bn.vip@gmail.com", MatKhau = "123456", CCCD = "079090001111", DiaChi = "Hà Nội", NgayTao = new DateTime(2026, 1, 1) },
+            new BenhNhan { MaBenhNhan = 2, HoTen = "Bệnh Nhân Tiêu Chuẩn", NgaySinh = new DateTime(1995, 5, 15), GioiTinh = "Nữ", SoDienThoai = "0822222222", Email = "bn.normal@gmail.com", MatKhau = "123456", CCCD = "079095002222", DiaChi = "TP.HCM", DiUng = "Hải sản", NgayTao = new DateTime(2026, 1, 1) }
+        );
     }
 }

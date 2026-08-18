@@ -1,0 +1,95 @@
+@model List<MyMvcApp.Models.AccountItemViewModel>
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+    Layout = "_AdminLayout";
+    var activeCount = Model.Count(m => m.IsActive);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Quản lý tài khoản</h4>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">
+            Tổng cộng @Model.Count tài khoản — <span style="color: var(--status-active-text); font-weight: 500;">@activeCount đang hoạt động</span>
+        </div>
+    </div>
+    <button class="btn" style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500;">
+        <i class="fas fa-plus me-2"></i> Thêm tài khoản
+    </button>
+</div>
+
+<div class="admin-table-container">
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="admin-search" style="width: 350px; background: transparent; border: 1px solid var(--admin-border);">
+            <i class="fas fa-search text-muted"></i>
+            <input type="text" placeholder="Tìm kiếm tài khoản..." />
+        </div>
+        <div class="d-flex gap-3">
+            <button class="btn btn-light" style="border: 1px solid var(--admin-border); background: white;">
+                <i class="fas fa-filter text-muted me-1"></i> Vai trò <i class="fas fa-chevron-down ms-2 text-muted" style="font-size: 0.75rem;"></i>
+            </button>
+            <button class="btn btn-light" style="border: 1px solid var(--admin-border); background: white;">
+                <i class="fas fa-filter text-muted me-1"></i> Trạng thái <i class="fas fa-chevron-down ms-2 text-muted" style="font-size: 0.75rem;"></i>
+            </button>
+        </div>
+    </div>
+
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th style="width: 25%">TÀI KHOẢN</th>
+                <th style="width: 25%">HỌ TÊN</th>
+                <th style="width: 15%">VAI TRÒ</th>
+                <th style="width: 15%">TRẠNG THÁI</th>
+                <th style="width: 10%">NGÀY TẠO</th>
+                <th style="width: 10%; text-align: center;">THAO TÁC</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in Model)
+            {
+                var roleClass = "badge-role-" + item.Role;
+                var statusClass = item.IsActive ? "badge-status-Active" : "badge-status-Locked";
+                var statusText = item.IsActive ? "Hoạt động" : "Bị khóa";
+                var statusDot = item.IsActive ? "var(--status-active-text)" : "var(--status-locked-text)";
+
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="position: relative;">
+                                <div class="admin-avatar" style="width: 40px; height: 40px; background: #e2e8f0; color: #475569;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <span class="position-absolute bottom-0 end-0 rounded-circle border border-white" style="width: 10px; height: 10px; background-color: @statusDot;"></span>
+                            </div>
+                            <span style="font-weight: 500; color: var(--admin-text-dark);">@item.Username</span>
+                        </div>
+                    </td>
+                    <td>@item.FullName</td>
+                    <td>
+                        <span class="admin-badge @roleClass">@item.Role</span>
+                    </td>
+                    <td>
+                        <span class="admin-badge @statusClass" style="background: transparent;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background-color: @statusDot; display: inline-block;"></span>
+                            @statusText
+                        </span>
+                    </td>
+                    <td style="color: var(--admin-text-muted); font-size: 0.9rem;">
+                        @item.CreatedAt.ToString("dd/MM/yyyy")
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="#" class="admin-action-btn" title="Edit">
+                            <i class="fas fa-edit" style="color: #3b82f6;"></i>
+                        </a>
+                        <a href="#" class="admin-action-btn" title="Lock/Unlock">
+                            <i class="fas fa-lock" style="color: #eab308;"></i>
+                        </a>
+                        <a href="#" class="admin-action-btn admin-action-delete" title="Delete">
+                            <i class="fas fa-trash-alt" style="color: #dc2626;"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

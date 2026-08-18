@@ -1,0 +1,125 @@
+@model MyMvcApp.Models.DoctorListViewModel
+@{
+    ViewData["Title"] = "Quản lý bác sĩ";
+    Layout = "_AdminLayout";
+    
+    // For mockup purposes, let's assume total profiles is larger
+    var totalProfiles = Model.TotalDoctors + 48; 
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Quản lý bác sĩ</h4>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">
+            @Model.TotalDoctors bác sĩ đang làm việc — <span style="font-weight: 500;">tổng cộng @totalProfiles hồ sơ</span>
+        </div>
+    </div>
+    <button class="btn" style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500;">
+        <i class="fas fa-plus me-2"></i> Thêm bác sĩ
+    </button>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    @foreach(var khoa in Model.Specialities)
+    {
+        <div class="admin-badge @khoa.ColorClass" style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(0,0,0,0.05); background-color: transparent; border-color: currentColor;">
+            @khoa.KhoaName <span class="ms-1 px-1 rounded" style="background: currentColor; color: white; opacity: 0.8; font-size: 0.75rem;">@khoa.Count</span>
+        </div>
+    }
+</div>
+
+<div class="admin-table-container">
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="admin-search" style="width: 400px; background: transparent; border: 1px solid var(--admin-border);">
+            <i class="fas fa-search text-muted"></i>
+            <input type="text" placeholder="Tìm kiếm bác sĩ theo tên, chuyên khoa..." />
+        </div>
+        <div class="d-flex gap-3">
+            <button class="btn btn-light" style="border: 1px solid var(--admin-border); background: white;">
+                <i class="fas fa-filter text-muted me-1"></i> Khoa <i class="fas fa-chevron-down ms-2 text-muted" style="font-size: 0.75rem;"></i>
+            </button>
+            <button class="btn btn-light" style="border: 1px solid var(--admin-border); background: white;">
+                <i class="fas fa-filter text-muted me-1"></i> Trạng thái <i class="fas fa-chevron-down ms-2 text-muted" style="font-size: 0.75rem;"></i>
+            </button>
+        </div>
+    </div>
+
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th style="width: 25%">BÁC SĨ</th>
+                <th style="width: 15%">CHUYÊN KHOA</th>
+                <th style="width: 20%">PHÒNG KHÁM</th>
+                <th style="width: 20%">LỊCH TRỰC</th>
+                <th style="width: 10%">TRẠNG THÁI</th>
+                <th style="width: 10%; text-align: center;">HÀNH ĐỘNG</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var doctor in Model.Doctors)
+            {
+                var statusClass = doctor.IsActive ? "badge-status-Active" : "badge-status-Locked";
+                var statusText = doctor.IsActive ? "Đang làm việc" : "Nghỉ việc";
+                var statusDot = doctor.IsActive ? "var(--status-active-text)" : "var(--status-locked-text)";
+
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="position: relative;">
+                                <div class="admin-avatar" style="width: 45px; height: 45px; background: #e2e8f0; color: #475569; overflow: hidden;">
+                                    <i class="fas fa-user-md" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <span class="position-absolute bottom-0 end-0 rounded-circle border border-white" style="width: 12px; height: 12px; background-color: @statusDot;"></span>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--admin-text-dark);">@doctor.Title @doctor.FullName</div>
+                                <div style="font-size: 0.8rem; color: var(--admin-text-muted);">@doctor.Speciality</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; color: var(--primary-color);">@doctor.Speciality</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-map-marker-alt" style="color: #cbd5e1;"></i>
+                            <div>
+                                <div>@doctor.ClinicRoom.Split('-')[0].Trim()</div>
+                                <div style="font-size: 0.8rem; color: var(--admin-text-muted);">@doctor.ClinicRoom.Split('-').LastOrDefault()?.Trim()</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="far fa-clock" style="color: #cbd5e1;"></i>
+                            <div>
+                                <div>@doctor.WorkSchedule.Split('-')[0].Trim()</div>
+                                <div style="font-size: 0.8rem; color: var(--admin-text-muted);">@doctor.WorkSchedule.Split('-').LastOrDefault()?.Trim()</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="admin-badge @statusClass" style="background: transparent;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background-color: @statusDot; display: inline-block;"></span>
+                            @statusText
+                        </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="#" class="admin-action-btn" title="View Profile">
+                            <i class="far fa-eye" style="color: #3b82f6;"></i>
+                        </a>
+                        <a href="#" class="admin-action-btn" title="Schedule">
+                            <i class="far fa-calendar-alt" style="color: #8b5cf6;"></i>
+                        </a>
+                        <a href="#" class="admin-action-btn" title="Edit">
+                            <i class="fas fa-edit" style="color: #eab308;"></i>
+                        </a>
+                        <a href="#" class="admin-action-btn admin-action-delete" title="Delete">
+                            <i class="fas fa-trash-alt" style="color: #dc2626;"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
