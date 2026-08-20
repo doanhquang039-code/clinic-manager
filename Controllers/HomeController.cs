@@ -15,6 +15,24 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            if (User.IsInRole("Admin"))
+                return RedirectToAction("Index", "Admin");
+            if (User.IsInRole("Manager"))
+                return RedirectToAction("Index", "Manager");
+            if (User.IsInRole("BacSi"))
+                return RedirectToAction("Index", "Doctor");
+            if (User.IsInRole("LeTan"))
+                return RedirectToAction("Index", "Staff");
+            if (User.IsInRole("ThuNgan"))
+                return RedirectToAction("Index", "Cashier");
+            if (User.IsInRole("BenhNhan"))
+                return RedirectToAction("Index", "Patient");
+                
+            return RedirectToAction("Index", "Patient"); // Fallback
+        }
+        
         return View();
     }
 

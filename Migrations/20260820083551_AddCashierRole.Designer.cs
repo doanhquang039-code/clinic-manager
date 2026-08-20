@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyMvcApp.Models;
 
@@ -11,9 +12,11 @@ using MyMvcApp.Models;
 namespace MyMvcApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820083551_AddCashierRole")]
+    partial class AddCashierRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,12 +75,10 @@ namespace MyMvcApp.Migrations
                     b.HasKey("MaBenhNhan");
 
                     b.HasIndex("CCCD")
-                        .IsUnique()
-                        .HasFilter("[CCCD] IS NOT NULL AND [CCCD] <> ''");
+                        .IsUnique();
 
                     b.HasIndex("Email")
-                        .IsUnique()
-                        .HasFilter("[Email] IS NOT NULL AND [Email] <> ''");
+                        .IsUnique();
 
                     b.HasIndex("SoDienThoai")
                         .IsUnique();

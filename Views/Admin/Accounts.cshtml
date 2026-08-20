@@ -1,7 +1,7 @@
 @model List<MyMvcApp.Models.AccountItemViewModel>
 @{
     ViewData["Title"] = "Quản lý tài khoản";
-    Layout = "_AdminLayout";
+    Layout = "_PortalLayout";
     var activeCount = Model.Count(m => m.IsActive);
 }
 
@@ -9,43 +9,73 @@
     <div>
         <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Quản lý tài khoản</h4>
         <div style="color: var(--admin-text-muted); font-size: 0.9rem;">
-            Tổng cộng @Model.Count tài khoản — <span style="color: var(--status-active-text); font-weight: 500;">@activeCount đang hoạt động</span>
+            Tổng cộng @Model.Count tài khoản — <span
+            style="color: var(--status-active-text); font-weight: 500;">@activeCount đang hoạt động</span>
         </div>
     </div>
-    <button class="btn" style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500;">
-        <i class="fas fa-plus me-2"></i> Thêm tài khoản
-    </button>
+    <div class="d-flex gap-2 align-items-center">
+        <a asp-action="ExportAccounts" class="btn btn-outline-secondary" style="border-radius: 8px; font-weight: 500; text-decoration: none;">
+            <i class="fas fa-file-export me-1"></i> Xuất
+        </a>
+        <form asp-action="ImportAccounts" method="post" enctype="multipart/form-data" class="d-flex" style="margin: 0;">
+            <label class="btn btn-outline-secondary mb-0" style="border-radius: 8px 0 0 8px; font-weight: 500; cursor: pointer;">
+                <i class="fas fa-file-import me-1"></i> Chọn file CSV
+                <input type="file" name="importFile" accept=".csv" style="display: none;" onchange="document.getElementById('btn-import-submit').style.display='block';">
+            </label>
+            <button type="submit" id="btn-import-submit" class="btn btn-secondary" style="border-radius: 0 8px 8px 0; font-weight: 500; display: none;">Nhập</button>
+        </form>
+        <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#createAccountModal" style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500; margin-left: 0.5rem;">
+            <i class="fas fa-plus me-2"></i> Thêm tài khoản
+        </button>
+    </div>
 </div>
 
 <div class="admin-table-container">
-    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+    <form asp-action="Accounts" method="get" class="d-flex justify-content-between align-items-center p-3 border-bottom">
         <div class="admin-search" style="width: 350px; background: transparent; border: 1px solid var(--admin-border);">
             <i class="fas fa-search text-muted"></i>
-            <input type="text" placeholder="Tìm kiếm tài khoản..." />
+            <input type="text" name="searchString" value="@ViewData["CurrentSearch"]" placeholder="Tìm kiếm tài khoản..." />
         </div>
-        <div class="d-flex gap-3">
-            <button class="btn btn-light" style="border: 1px solid var(--admin-border); background: white;">
-                <i class="fas fa-filter text-muted me-1"></i> Vai trò <i class="fas fa-chevron-down ms-2 text-muted" style="font-size: 0.75rem;"></i>
+        <div class="d-flex gap-3 align-items-center">
+            <select name="roleFilter" class="form-select" style="border: 1px solid var(--admin-border); width: auto;" onchange="this.form.submit()">
+                <option value="">Tất cả vai trò</option>
+                <option value="Admin" selected="@(ViewData["CurrentRole"]?.ToString() == "Admin")">Admin</option>
+                <option value="Doctor" selected="@(ViewData["CurrentRole"]?.ToString() == "Doctor")">Doctor</option>
+                <option value="Staff" selected="@(ViewData["CurrentRole"]?.ToString() == "Staff")">Staff</option>
+                <option value="Patient" selected="@(ViewData["CurrentRole"]?.ToString() == "Patient")">Patient</option>
+            </select>
+            <button type="submit" class="btn btn-light" style="border: 1px solid var(--admin-border); background: white;">
+                <i class="fas fa-filter text-muted me-1"></i> Lọc
             </button>
-            <button class="btn btn-light" style="border: 1px solid var(--admin-border); background: white;">
-                <i class="fas fa-filter text-muted me-1"></i> Trạng thái <i class="fas fa-chevron-down ms-2 text-muted" style="font-size: 0.75rem;"></i>
-            </button>
+            <a asp-action="Accounts" class="btn btn-link text-muted" style="text-decoration: none;">Xóa lọc</a>
         </div>
-    </div>
+    </form>
 
     <table class="admin-table">
         <thead>
             <tr>
                 <th style="width: 25%">TÀI KHOẢN</th>
-                <th style="width: 25%">HỌ TÊN</th>
-                <th style="width: 15%">VAI TRÒ</th>
+                <th style="width: 25%">
+                    <a asp-action="Accounts" asp-route-sortOrder="@ViewData["NameSortParm"]" asp-route-searchString="@ViewData["CurrentSearch"]" asp-route-roleFilter="@ViewData["CurrentRole"]" style="color: inherit; text-decoration: none;">
+                        HỌ TÊN <i class="fas fa-sort ms-1"></i>
+                    </a>
+                </th>
+                <th style="width: 15%">
+                    <a asp-action="Accounts" asp-route-sortOrder="@ViewData["RoleSortParm"]" asp-route-searchString="@ViewData["CurrentSearch"]" asp-route-roleFilter="@ViewData["CurrentRole"]" style="color: inherit; text-decoration: none;">
+                        VAI TRÒ <i class="fas fa-sort ms-1"></i>
+                    </a>
+                </th>
                 <th style="width: 15%">TRẠNG THÁI</th>
-                <th style="width: 10%">NGÀY TẠO</th>
+                <th style="width: 10%">
+                    <a asp-action="Accounts" asp-route-sortOrder="@ViewData["DateSortParm"]" asp-route-searchString="@ViewData["CurrentSearch"]" asp-route-roleFilter="@ViewData["CurrentRole"]" style="color: inherit; text-decoration: none;">
+                        NGÀY TẠO <i class="fas fa-sort ms-1"></i>
+                    </a>
+                </th>
                 <th style="width: 10%; text-align: center;">THAO TÁC</th>
             </tr>
         </thead>
         <tbody>
-            @foreach(var item in Model)
+            @foreach (var item in Model)
             {
                 var roleClass = "badge-role-" + item.Role;
                 var statusClass = item.IsActive ? "badge-status-Active" : "badge-status-Locked";
@@ -56,10 +86,12 @@
                     <td>
                         <div class="d-flex align-items-center gap-3">
                             <div style="position: relative;">
-                                <div class="admin-avatar" style="width: 40px; height: 40px; background: #e2e8f0; color: #475569;">
+                                <div class="admin-avatar"
+                                     style="width: 40px; height: 40px; background: #e2e8f0; color: #475569;">
                                     <i class="fas fa-user"></i>
                                 </div>
-                                <span class="position-absolute bottom-0 end-0 rounded-circle border border-white" style="width: 10px; height: 10px; background-color: @statusDot;"></span>
+                                <span class="position-absolute bottom-0 end-0 rounded-circle border border-white"
+                                      style="width: 10px; height: 10px; background-color: @statusDot;"></span>
                             </div>
                             <span style="font-weight: 500; color: var(--admin-text-dark);">@item.Username</span>
                         </div>
@@ -70,7 +102,8 @@
                     </td>
                     <td>
                         <span class="admin-badge @statusClass" style="background: transparent;">
-                            <span style="width: 6px; height: 6px; border-radius: 50%; background-color: @statusDot; display: inline-block;"></span>
+                            <span
+                            style="width: 6px; height: 6px; border-radius: 50%; background-color: @statusDot; display: inline-block;"></span>
                             @statusText
                         </span>
                     </td>
@@ -78,13 +111,13 @@
                         @item.CreatedAt.ToString("dd/MM/yyyy")
                     </td>
                     <td style="text-align: center;">
-                        <a href="#" class="admin-action-btn" title="Edit">
+                        <a href="#" class="admin-action-btn" title="Edit" onclick="openEditModal('@item.Id', '@item.Type', '@Html.Raw(item.FullName.Replace("'", "\\'"))', '@item.Role'); return false;">
                             <i class="fas fa-edit" style="color: #3b82f6;"></i>
                         </a>
-                        <a href="#" class="admin-action-btn" title="Lock/Unlock">
-                            <i class="fas fa-lock" style="color: #eab308;"></i>
+                        <a asp-action="ToggleLockAccount" asp-route-id="@item.Id" asp-route-type="@item.Type" class="admin-action-btn" title="Lock/Unlock" onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái tài khoản này?');">
+                            <i class="fas @(item.IsActive ? "fa-lock" : "fa-unlock")" style="color: #eab308;"></i>
                         </a>
-                        <a href="#" class="admin-action-btn admin-action-delete" title="Delete">
+                        <a asp-action="DeleteAccount" asp-route-id="@item.Id" asp-route-type="@item.Type" class="admin-action-btn admin-action-delete" title="Delete" onclick="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản này không?');">
                             <i class="fas fa-trash-alt" style="color: #dc2626;"></i>
                         </a>
                     </td>
@@ -93,3 +126,108 @@
         </tbody>
     </table>
 </div>
+
+<!-- Modal Thêm Tài Khoản -->
+<div class="modal fade" id="createAccountModal" tabindex="-1" aria-labelledby="createAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title" id="createAccountModalLabel" style="font-weight: 700; color: var(--admin-text-dark);">Tạo tài khoản mới</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form asp-action="CreateAccount" method="post">
+          <div class="modal-body">
+              <div class="mb-3">
+                  <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">HỌ VÀ TÊN</label>
+                  <input type="text" name="HoTen" class="form-control" required placeholder="VD: Nguyễn Văn A">
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">EMAIL</label>
+                  <input type="email" name="Email" class="form-control" required placeholder="VD: example@email.com">
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">SỐ ĐIỆN THOẠI</label>
+                  <input type="text" name="SoDienThoai" class="form-control" placeholder="Tùy chọn">
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">VAI TRÒ</label>
+                  <select name="Role" class="form-select" required>
+                      <option value="BacSi">Bác sĩ (Doctor)</option>
+                      <option value="LeTan">Lễ tân (Staff)</option>
+                      <option value="Manager">Quản lý (Manager)</option>
+                      <option value="Admin">Quản trị viên (Admin)</option>
+                  </select>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">MẬT KHẨU (SẼ ĐƯỢC MÃ HÓA)</label>
+                  <input type="text" name="MatKhau" class="form-control" required placeholder="Nhập mật khẩu cho người dùng">
+              </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 500;">Hủy</button>
+            <button type="submit" class="btn" style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; font-weight: 500;">Tạo tài khoản</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Sửa Tài Khoản -->
+<div class="modal fade" id="editAccountModal" tabindex="-1" aria-labelledby="editAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title" id="editAccountModalLabel" style="font-weight: 700; color: var(--admin-text-dark);">Cập nhật tài khoản</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form asp-action="EditAccount" method="post">
+          <input type="hidden" name="Id" id="edit-id" />
+          <input type="hidden" name="Type" id="edit-type" />
+          <div class="modal-body">
+              <div class="mb-3">
+                  <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">HỌ VÀ TÊN</label>
+                  <input type="text" name="HoTen" id="edit-name" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">VAI TRÒ (Chỉ áp dụng cho Nhân sự)</label>
+                  <select name="Role" id="edit-role" class="form-select">
+                      <option value="Patient">Bệnh nhân (Không thay đổi)</option>
+                      <option value="BacSi">Bác sĩ (Doctor)</option>
+                      <option value="LeTan">Lễ tân (Staff)</option>
+                      <option value="Manager">Quản lý (Manager)</option>
+                      <option value="Admin">Quản trị viên (Admin)</option>
+                  </select>
+              </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 500;">Hủy</button>
+            <button type="submit" class="btn" style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; font-weight: 500;">Cập nhật</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openEditModal(id, type, name, role) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-type').value = type;
+            document.getElementById('edit-name').value = name;
+            
+            var roleSelect = document.getElementById('edit-role');
+            if (type === 'BenhNhan') {
+                roleSelect.value = 'Patient';
+                roleSelect.disabled = true;
+            } else {
+                roleSelect.disabled = false;
+                if(role === 'Doctor') roleSelect.value = 'BacSi';
+                else if(role === 'Staff') roleSelect.value = 'LeTan';
+                else roleSelect.value = role;
+            }
+            
+            var modal = new bootstrap.Modal(document.getElementById('editAccountModal'));
+            modal.show();
+        }
+    </script>
+}

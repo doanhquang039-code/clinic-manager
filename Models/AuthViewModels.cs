@@ -28,7 +28,7 @@ public class RegisterViewModel
     [Required(ErrorMessage = "Vui lòng chọn Ngày sinh")]
     [DataType(DataType.Date)]
     [Display(Name = "Ngày sinh")]
-    public DateTime NgaySinh { get; set; }
+    public DateTime? NgaySinh { get; set; }
 
     [Required(ErrorMessage = "Vui lòng chọn Giới tính")]
     [Display(Name = "Giới tính")]

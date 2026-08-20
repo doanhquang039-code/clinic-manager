@@ -64,9 +64,9 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<BenhNhan>()
             .HasIndex(b => b.SoDienThoai).IsUnique();
         modelBuilder.Entity<BenhNhan>()
-            .HasIndex(b => b.Email).IsUnique();
+            .HasIndex(b => b.Email).IsUnique().HasFilter("[Email] IS NOT NULL AND [Email] <> ''");
         modelBuilder.Entity<BenhNhan>()
-            .HasIndex(b => b.CCCD).IsUnique();
+            .HasIndex(b => b.CCCD).IsUnique().HasFilter("[CCCD] IS NOT NULL AND [CCCD] <> ''");
 
         modelBuilder.Entity<LichKham>()
             .HasIndex(l => new { l.MaBacSi, l.NgayKham, l.GioKham }).IsUnique();
@@ -145,7 +145,8 @@ public class ApplicationDbContext : DbContext
             new NguoiDung { MaNguoiDung = 6, HoTen = "ThS.BS. Trần Hữu Lan", SoDienThoai = "0922222222", Email = "lanth@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 2, TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
             new NguoiDung { MaNguoiDung = 7, HoTen = "BS.CKII. Lê Quốc Minh", SoDienThoai = "0933333333", Email = "minhlq@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 3, TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
             new NguoiDung { MaNguoiDung = 8, HoTen = "BS. Phạm Hoàng Phúc", SoDienThoai = "0944444444", Email = "phucph@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 4, TrangThai = true, NgayTao = new DateTime(2026, 1, 1) },
-            new NguoiDung { MaNguoiDung = 9, HoTen = "BS. Võ Thị Tuyết", SoDienThoai = "0955555555", Email = "tuyetvt@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 5, TrangThai = false, NgayTao = new DateTime(2026, 1, 1) }
+            new NguoiDung { MaNguoiDung = 9, HoTen = "BS. Võ Thị Tuyết", SoDienThoai = "0955555555", Email = "tuyetvt@medicore.com", MatKhau = "123456", Role = "BacSi", MaChuyenKhoa = 5, TrangThai = false, NgayTao = new DateTime(2026, 1, 1) },
+            new NguoiDung { MaNguoiDung = 10, HoTen = "Thu Ngân 1", SoDienThoai = "0900000000", Email = "thungan@medicore.com", MatKhau = "123456", Role = "ThuNgan", TrangThai = true, NgayTao = new DateTime(2026, 1, 1) }
         );
 
         modelBuilder.Entity<BenhNhan>().HasData(

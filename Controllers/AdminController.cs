@@ -26,7 +26,7 @@ public class AdminController : Controller
         var doctors = nguoiDungs.Count(n => n.Role == "BacSi") + 40;
         var staff = nguoiDungs.Count(n => n.Role == "LeTan" || n.Role == "Manager") + 130;
         var patients = benhNhans.Count() + 1840;
-        
+
         var activeAccounts = nguoiDungs.Count(n => n.TrangThai) + 1900;
         var lockedAccounts = nguoiDungs.Count(n => !n.TrangThai) + 20;
 
@@ -43,28 +43,35 @@ public class AdminController : Controller
         return View(model);
     }
 
-    public async Task<IActionResult> Accounts()
+    public async Task<IActionResult> Accounts(string searchString, string roleFilter, string sortOrder)
     {
+        ViewData["CurrentSearch"] = searchString;
+        ViewData["CurrentRole"] = roleFilter;
+        ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+        ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
+        ViewData["RoleSortParm"] = sortOrder == "Role" ? "role_desc" : "Role";
+        ViewData["CurrentSort"] = sortOrder;
+
         var nguoiDungs = await _context.NguoiDungs.ToListAsync();
         var benhNhans = await _context.BenhNhans.ToListAsync();
 
         var accounts = new List<AccountItemViewModel>();
 
-        foreach(var nd in nguoiDungs)
+        foreach (var nd in nguoiDungs)
         {
             accounts.Add(new AccountItemViewModel
             {
                 Id = nd.MaNguoiDung.ToString(),
                 Username = $"@{nd.HoTen.Split(' ').Last().ToLower()}.00{nd.MaNguoiDung}", // fake handle
                 FullName = nd.HoTen,
-                Role = nd.Role == "BacSi" ? "Doctor" : (nd.Role == "Admin" ? "Admin" : "Staff"),
+                Role = nd.Role == "BacSi" ? "Doctor" : (nd.Role == "Admin" ? "Admin" : (nd.Role == "Manager" ? "Manager" : "Staff")),
                 IsActive = nd.TrangThai,
                 CreatedAt = nd.NgayTao ?? DateTime.Now.AddDays(-100),
                 Type = "NguoiDung"
             });
         }
 
-        foreach(var bn in benhNhans)
+        foreach (var bn in benhNhans)
         {
             accounts.Add(new AccountItemViewModel
             {
@@ -78,16 +85,190 @@ public class AdminController : Controller
             });
         }
 
-        // Add some hardcoded ones if empty, just to make sure UI looks like mockup
-        if (!accounts.Any())
+        // Apply filters
+        if (!String.IsNullOrEmpty(searchString))
         {
-            accounts.Add(new AccountItemViewModel { Id = "1", Username = "@dung.001", FullName = "Nguyễn Văn Dũng", Role = "Doctor", IsActive = false, CreatedAt = new DateTime(2022, 1, 1) });
-            accounts.Add(new AccountItemViewModel { Id = "2", Username = "@hoa.002", FullName = "Trần Thị Hoa", Role = "Staff", IsActive = true, CreatedAt = new DateTime(2023, 2, 2) });
-            accounts.Add(new AccountItemViewModel { Id = "3", Username = "@khoa.003", FullName = "Lê Minh Khoa", Role = "Patient", IsActive = true, CreatedAt = new DateTime(2024, 3, 3) });
-            accounts.Add(new AccountItemViewModel { Id = "4", Username = "@lan.004", FullName = "Phạm Thị Lan", Role = "Admin", IsActive = true, CreatedAt = new DateTime(2022, 4, 4) });
+            accounts = accounts.Where(s => s.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+                                        || s.Username.Contains(searchString, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
-        return View(accounts.OrderBy(a => a.Username).ToList());
+        if (!String.IsNullOrEmpty(roleFilter))
+        {
+            accounts = accounts.Where(s => s.Role.Equals(roleFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        // Apply sorting
+        switch (sortOrder)
+        {
+            case "name_desc":
+                accounts = accounts.OrderByDescending(s => s.FullName).ToList();
+                break;
+            case "Date":
+                accounts = accounts.OrderBy(s => s.CreatedAt).ToList();
+                break;
+            case "date_desc":
+                accounts = accounts.OrderByDescending(s => s.CreatedAt).ToList();
+                break;
+            case "Role":
+                accounts = accounts.OrderBy(s => s.Role).ToList();
+                break;
+            case "role_desc":
+                accounts = accounts.OrderByDescending(s => s.Role).ToList();
+                break;
+            default:
+                accounts = accounts.OrderBy(s => s.FullName).ToList();
+                break;
+        }
+
+        return View(accounts);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateAccount(NguoiDung model)
+    {
+        model.NgayTao = DateTime.Now;
+        model.TrangThai = true;
+        // In real app, hash password here: model.MatKhau = HashPassword(model.MatKhau);
+        await _context.NguoiDungs.AddAsync(model);
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Thêm tài khoản thành công!";
+        return RedirectToAction("Accounts");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditAccount(string Id, string Type, string HoTen, string Role)
+    {
+        if (Type == "NguoiDung" && int.TryParse(Id, out int ndId))
+        {
+            var user = await _context.NguoiDungs.FindAsync(ndId);
+            if (user != null)
+            {
+                user.HoTen = HoTen;
+                if (!string.IsNullOrEmpty(Role))
+                    user.Role = Role;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Cập nhật tài khoản nhân sự thành công!";
+            }
+        }
+        else if (Type == "BenhNhan" && int.TryParse(Id, out int bnId))
+        {
+            var patient = await _context.BenhNhans.FindAsync(bnId);
+            if (patient != null)
+            {
+                patient.HoTen = HoTen;
+                // Bệnh nhân không đổi role
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Cập nhật tài khoản bệnh nhân thành công!";
+            }
+        }
+        return RedirectToAction("Accounts");
+    }
+
+    public async Task<IActionResult> ToggleLockAccount(string id, string type)
+    {
+        if (type == "NguoiDung" && int.TryParse(id, out int ndId))
+        {
+            var user = await _context.NguoiDungs.FindAsync(ndId);
+            if (user != null)
+            {
+                user.TrangThai = !user.TrangThai;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = user.TrangThai ? "Đã mở khóa tài khoản." : "Đã khóa tài khoản.";
+            }
+        }
+        // Bệnh nhân chưa có cột TrangThai, tạm thời bỏ qua
+        return RedirectToAction("Accounts");
+    }
+
+    public async Task<IActionResult> DeleteAccount(string id, string type)
+    {
+        if (type == "NguoiDung" && int.TryParse(id, out int ndId))
+        {
+            var user = await _context.NguoiDungs.FindAsync(ndId);
+            if (user != null)
+            {
+                _context.NguoiDungs.Remove(user);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã xóa tài khoản nhân viên.";
+            }
+        }
+        else if (type == "BenhNhan" && int.TryParse(id, out int bnId))
+        {
+            var patient = await _context.BenhNhans.FindAsync(bnId);
+            if (patient != null)
+            {
+                _context.BenhNhans.Remove(patient);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã xóa tài khoản bệnh nhân.";
+            }
+        }
+        return RedirectToAction("Accounts");
+    }
+
+    public async Task<IActionResult> ExportAccounts()
+    {
+        var nguoiDungs = await _context.NguoiDungs.ToListAsync();
+        var benhNhans = await _context.BenhNhans.ToListAsync();
+
+        var builder = new System.Text.StringBuilder();
+        builder.AppendLine("ID,Type,FullName,Role,Email,Phone,IsActive,CreatedAt");
+
+        foreach (var nd in nguoiDungs)
+        {
+            builder.AppendLine($"{nd.MaNguoiDung},NguoiDung,{nd.HoTen},{nd.Role},{nd.Email},{nd.SoDienThoai},{nd.TrangThai},{nd.NgayTao}");
+        }
+
+        foreach (var bn in benhNhans)
+        {
+            builder.AppendLine($"{bn.MaBenhNhan},BenhNhan,{bn.HoTen},Patient,{bn.Email},{bn.SoDienThoai},True,{bn.NgayTao}");
+        }
+
+        return File(System.Text.Encoding.UTF8.GetBytes(builder.ToString()), "text/csv", "accounts_export.csv");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ImportAccounts(IFormFile importFile)
+    {
+        if (importFile == null || importFile.Length == 0)
+        {
+            TempData["ErrorMessage"] = "Vui lòng chọn file CSV để tải lên.";
+            return RedirectToAction("Accounts");
+        }
+
+        using (var stream = new StreamReader(importFile.OpenReadStream()))
+        {
+            var headerLine = await stream.ReadLineAsync();
+            int importCount = 0;
+            while (!stream.EndOfStream)
+            {
+                var line = await stream.ReadLineAsync();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                var values = line.Split(',');
+                if (values.Length >= 4)
+                {
+                    // Giả định CSV có cấu trúc: HoTen, Email, SoDienThoai, Role
+                    var newUser = new NguoiDung
+                    {
+                        HoTen = values[0].Trim(),
+                        Email = values[1].Trim(),
+                        SoDienThoai = values[2].Trim(),
+                        Role = values[3].Trim(),
+                        MatKhau = Guid.NewGuid().ToString().Substring(0, 8),
+                        TrangThai = true,
+                        NgayTao = DateTime.Now
+                    };
+                    await _context.NguoiDungs.AddAsync(newUser);
+                    importCount++;
+                }
+            }
+            if (importCount > 0)
+            {
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Đã import thành công {importCount} tài khoản nhân sự.";
+            }
+        }
+        return RedirectToAction("Accounts");
     }
 
     public async Task<IActionResult> Doctors()
@@ -100,11 +281,11 @@ public class AdminController : Controller
         var khoas = await _context.ChuyenKhoas.ToListAsync();
 
         var model = new DoctorListViewModel();
-        
+
         var colorClasses = new[] { "badge-role-Staff", "badge-role-Doctor", "badge-status-Locked", "badge-role-Patient", "badge-status-Active", "badge-role-Admin" };
         int colorIdx = 0;
 
-        foreach(var k in khoas)
+        foreach (var k in khoas)
         {
             model.Specialities.Add(new KhoaSummary
             {
@@ -126,7 +307,7 @@ public class AdminController : Controller
             model.Specialities.Add(new KhoaSummary { KhoaName = "Da liễu", Count = 20, ColorClass = "badge-status-Locked" });
         }
 
-        foreach(var d in dbDoctors)
+        foreach (var d in dbDoctors)
         {
             model.Doctors.Add(new DoctorItemViewModel
             {
@@ -150,5 +331,15 @@ public class AdminController : Controller
         model.TotalDoctors = model.Doctors.Count;
 
         return View(model);
+    }
+
+    public IActionResult Roles()
+    {
+        return View("ComingSoon");
+    }
+
+    public IActionResult Logs()
+    {
+        return View("ComingSoon");
     }
 }

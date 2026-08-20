@@ -108,6 +108,7 @@ public class AuthController : Controller
         var user = users.FirstOrDefault();
         if (user != null)
         {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme); // Đăng xuất cookie thô của Google
             await SignInUserAsync(user.MaNguoiDung.ToString(), user.HoTen, user.Role, "NguoiDung");
             return RedirectToLocal(returnUrl);
         }
@@ -117,15 +118,30 @@ public class AuthController : Controller
         var patient = patients.FirstOrDefault();
         if (patient != null)
         {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             await SignInUserAsync(patient.MaBenhNhan.ToString(), patient.HoTen, "BenhNhan", "BenhNhan");
             return RedirectToLocal(returnUrl);
         }
 
-        // Nếu chưa tồn tại, chuyển hướng sang trang Đăng ký và truyền tên, email
-        TempData["ExternalEmail"] = email;
-        TempData["ExternalName"] = name;
-        TempData["InfoMessage"] = "Vui lòng hoàn tất thông tin đăng ký cho tài khoản mới.";
-        return RedirectToAction("Register");
+        // Nếu chưa tồn tại, tự động tạo tài khoản Bệnh nhân mới theo yêu cầu
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        
+        var newPatient = new BenhNhan
+        {
+            HoTen = string.IsNullOrWhiteSpace(name) ? "Người dùng mới" : name,
+            Email = email,
+            GioiTinh = "Khac", // Mặc định
+            NgaySinh = new DateTime(2000, 1, 1), // Mặc định
+            MatKhau = Guid.NewGuid().ToString().Substring(0, 8), // Mật khẩu ngẫu nhiên
+            NgayTao = DateTime.Now
+        };
+        await _benhNhanRepository.AddAsync(newPatient);
+
+        // Đăng nhập với tài khoản vừa tạo
+        await SignInUserAsync(newPatient.MaBenhNhan.ToString(), newPatient.HoTen, "BenhNhan", "BenhNhan");
+        
+        TempData["SuccessMessage"] = "Đăng nhập Google thành công! Tài khoản Bệnh nhân của bạn đã được tự động tạo.";
+        return RedirectToAction("Index", "Patient");
     }
 
     [HttpGet]
@@ -152,6 +168,12 @@ public class AuthController : Controller
     {
         if (!ModelState.IsValid)
             return View(model);
+
+        if (model.NgaySinh.Value.Year < 1900)
+        {
+            ModelState.AddModelError("NgaySinh", "Năm sinh không hợp lệ (phải từ năm 1900 trở đi).");
+            return View(model);
+        }
 
         // Kiểm tra số điện thoại hoặc email đã tồn tại trong bảng Bệnh nhân chưa
         var existingPhone = await _benhNhanRepository.FindAsync(p => p.SoDienThoai == model.SoDienThoai);
@@ -184,12 +206,12 @@ public class AuthController : Controller
         var benhNhan = new BenhNhan
         {
             HoTen = model.HoTen,
-            NgaySinh = model.NgaySinh,
+            NgaySinh = model.NgaySinh.Value,
             GioiTinh = model.GioiTinh,
             SoDienThoai = model.SoDienThoai,
-            Email = model.Email,
+            Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim(),
             MatKhau = model.MatKhau, // Trong thực tế nên Hash mật khẩu
-            CCCD = model.CCCD,
+            CCCD = string.IsNullOrWhiteSpace(model.CCCD) ? null : model.CCCD.Trim(),
             NgayTao = DateTime.Now
         };
 

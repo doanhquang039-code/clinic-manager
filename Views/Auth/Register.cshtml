@@ -11,7 +11,7 @@
             <p class="text-muted">Dành riêng cho Bệnh nhân</p>
         </div>
 
-        <form asp-action="Register">
+        <form asp-action="Register" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
             @if (TempData["InfoMessage"] != null)
@@ -101,7 +101,3 @@
         </form>
     </div>
 </div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

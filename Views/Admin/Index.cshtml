@@ -1,7 +1,7 @@
 @model MyMvcApp.Models.AdminDashboardViewModel
 @{
     ViewData["Title"] = "Admin Dashboard";
-    Layout = "_AdminLayout";
+    Layout = "_PortalLayout";
     
     var userName = User.Identity?.Name ?? "User";
     var lastName = userName.Split(' ').Last();
