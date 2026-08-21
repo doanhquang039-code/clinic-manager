@@ -1,0 +1,110 @@
+@model MyMvcApp.Models.PhieuKham
+@{
+    ViewData["Title"] = "Khám Bệnh";
+    Layout = "_PortalLayout";
+    
+    var appointment = ViewBag.Appointment as MyMvcApp.Models.LichKham;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Quay lại Danh sách</a>
+    <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Phiếu Khám Bệnh</h4>
+    <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Thực hiện khám chuyên khoa</div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="admin-card p-4 h-100" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+            <h5 style="font-weight: 600; color: #334155; margin-bottom: 1.5rem;"><i class="fas fa-address-card text-primary me-2"></i> Thông tin Bệnh nhân</h5>
+            
+            <div class="text-center mb-4">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: #e2e8f0; display: inline-flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #94a3b8; margin-bottom: 1rem;">
+                    <i class="fas fa-user-injured"></i>
+                </div>
+                <h5 style="font-weight: 700; margin-bottom: 0;">@appointment?.BenhNhan?.HoTen</h5>
+                <span class="badge bg-secondary mt-2">ID: BN-@appointment?.MaBenhNhan.ToString("D5")</span>
+            </div>
+
+            <ul class="list-group list-group-flush" style="background: transparent;">
+                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                    <span class="text-muted" style="font-size: 0.9rem;">Tuổi</span>
+                    <strong>@(appointment?.BenhNhan != null ? DateTime.Now.Year - appointment.BenhNhan.NgaySinh.Year : 0)</strong>
+                </li>
+                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                    <span class="text-muted" style="font-size: 0.9rem;">Giới tính</span>
+                    <strong>@appointment?.BenhNhan?.GioiTinh</strong>
+                </li>
+                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                    <span class="text-muted" style="font-size: 0.9rem;">Dị ứng</span>
+                    @if (!string.IsNullOrEmpty(appointment?.BenhNhan?.DiUng))
+                    {
+                        <strong class="text-danger">@appointment.BenhNhan.DiUng</strong>
+                    }
+                    else
+                    {
+                        <strong>Không</strong>
+                    }
+                </li>
+                <li class="list-group-item bg-transparent px-0">
+                    <div class="text-muted mb-1" style="font-size: 0.9rem;">Triệu chứng ban đầu</div>
+                    <div class="p-2" style="background: white; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.9rem;">
+                        @(string.IsNullOrEmpty(appointment?.LyDoKham) ? "Không có dữ liệu" : appointment.LyDoKham)
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            <h5 style="font-weight: 600; color: #334155; margin-bottom: 1.5rem;"><i class="fas fa-file-medical text-primary me-2"></i> Kết quả Khám & Chẩn đoán</h5>
+            
+            <form asp-action="SaveConsultation" method="post">
+                <input type="hidden" asp-for="MaLichKham" />
+                <input type="hidden" asp-for="MaBenhNhan" />
+                <input type="hidden" asp-for="MaBacSi" />
+                
+                <div class="mb-4">
+                    <label class="form-label" style="font-weight: 600; color: #475569;">GHI NHẬN TRIỆU CHỨNG LÂM SÀNG</label>
+                    <textarea asp-for="TrieuChung" class="form-control" rows="3" style="border-radius: 8px;" placeholder="Mô tả chi tiết triệu chứng hiện tại của bệnh nhân..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-weight: 600; color: #475569;">CHẨN ĐOÁN (MÃ BỆNH) <span class="text-danger">*</span></label>
+                    <input asp-for="ChanDoan" type="text" class="form-control" style="border-radius: 8px; padding: 0.6rem 1rem;" required placeholder="Ví dụ: Viêm họng cấp (J02.9)" />
+                    <span asp-validation-for="ChanDoan" class="text-danger"></span>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight: 600; color: #475569;">LỜI DẶN BÁC SĨ</label>
+                        <textarea asp-for="LoiDan" class="form-control" rows="4" style="border-radius: 8px;" placeholder="Dặn dò chế độ ăn uống, nghỉ ngơi..."></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight: 600; color: #475569;">GHI CHÚ NỘI BỘ</label>
+                        <textarea asp-for="GhiChu" class="form-control" rows="4" style="border-radius: 8px;" placeholder="Ghi chú thêm (không in ra phiếu)"></textarea>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted" style="font-size: 0.85rem;">
+                        <i class="fas fa-info-circle me-1"></i> Tính năng Kê đơn thuốc sẽ được cập nhật ở phiên bản sau.
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="background: var(--admin-sidebar-bg); border: none; border-radius: 8px; font-weight: 600; padding: 0.6rem 1.5rem;">
+                        <i class="fas fa-save me-2"></i> Lưu & Hoàn tất Khám
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

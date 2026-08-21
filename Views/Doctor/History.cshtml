@@ -1,0 +1,75 @@
+@model List<MyMvcApp.Models.PhieuKham>
+@{
+    ViewData["Title"] = "Lịch sử Khám";
+    Layout = "_PortalLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Lịch sử khám bệnh</h4>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Danh sách 50 bệnh nhân gần nhất bạn đã khám</div>
+    </div>
+</div>
+
+<div class="admin-table-container">
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+        <div class="admin-search" style="width: 350px; background: transparent; border: 1px solid var(--admin-border);">
+            <i class="fas fa-search text-muted"></i>
+            <input type="text" placeholder="Tìm tên bệnh nhân hoặc mã chẩn đoán..." />
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%">NGÀY KHÁM</th>
+                    <th style="width: 20%">BỆNH NHÂN</th>
+                    <th style="width: 10%">SĐT</th>
+                    <th style="width: 25%">CHẨN ĐOÁN</th>
+                    <th style="width: 20%">LỜI DẶN</th>
+                    <th style="width: 10%; text-align: center;">CHI TIẾT</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td style="font-weight: 500;">@item.NgayKham?.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <span style="font-weight: 500;">@item.BenhNhan?.HoTen</span>
+                            </div>
+                        </td>
+                        <td>@item.BenhNhan?.SoDienThoai</td>
+                        <td>
+                            <span style="color: var(--admin-text-dark); font-weight: 500;">@item.ChanDoan</span>
+                        </td>
+                        <td>
+                            <span class="text-truncate d-inline-block text-muted" style="max-width: 150px;">
+                                @(string.IsNullOrEmpty(item.LoiDan) ? "-" : item.LoiDan)
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            <a href="#" class="btn btn-sm btn-outline-secondary" style="border-radius: 6px;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="p-5 text-center text-muted">
+            <i class="fas fa-history fa-3x mb-3 text-light"></i>
+            <h5>Chưa có lịch sử khám bệnh</h5>
+            <p>Dữ liệu các ca khám của bạn sẽ hiển thị tại đây.</p>
+        </div>
+    }
+</div>

@@ -1,0 +1,118 @@
+@model MyMvcApp.Models.LichKham
+@{
+    ViewData["Title"] = "Đặt lịch khám";
+    Layout = "_PortalLayout";
+    
+    var specialties = ViewBag.Specialties as List<MyMvcApp.Models.ChuyenKhoa>;
+    var doctors = ViewBag.Doctors as IEnumerable<dynamic>;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Quay lại Dashboard</a>
+    <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Đặt lịch khám mới</h4>
+    <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Vui lòng điền thông tin để chúng tôi sắp xếp bác sĩ phù hợp</div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="admin-card p-4">
+            <form asp-action="BookAppointment" method="post">
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #475569;">CHUYÊN KHOA <span class="text-danger">*</span></label>
+                        <select id="specialty-select" class="form-select" style="border-radius: 8px; padding: 0.6rem 1rem;" required>
+                            <option value="">-- Chọn chuyên khoa --</option>
+                            @if (specialties != null)
+                            {
+                                foreach (var spec in specialties)
+                                {
+                                    <option value="@spec.MaChuyenKhoa">@spec.TenChuyenKhoa</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #475569;">BÁC SĨ <span class="text-danger">*</span></label>
+                        <select asp-for="MaBacSi" id="doctor-select" class="form-select" style="border-radius: 8px; padding: 0.6rem 1rem;" required disabled>
+                            <option value="">-- Vui lòng chọn khoa trước --</option>
+                        </select>
+                        <span asp-validation-for="MaBacSi" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #475569;">NGÀY KHÁM <span class="text-danger">*</span></label>
+                        <input asp-for="NgayKham" type="date" class="form-control" style="border-radius: 8px; padding: 0.6rem 1rem;" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                        <span asp-validation-for="NgayKham" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" style="font-weight: 600; color: #475569;">GIỜ KHÁM <span class="text-danger">*</span></label>
+                        <input asp-for="GioKham" type="time" class="form-control" style="border-radius: 8px; padding: 0.6rem 1rem;" min="07:00" max="17:00" required />
+                        <span asp-validation-for="GioKham" class="text-danger"></span>
+                        <div class="form-text text-muted" style="font-size: 0.8rem;">Giờ làm việc: 07:00 - 17:00</div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" style="font-weight: 600; color: #475569;">LÝ DO KHÁM / TRIỆU CHỨNG</label>
+                    <textarea asp-for="LyDoKham" class="form-control" rows="4" style="border-radius: 8px; padding: 1rem;" placeholder="Mô tả các triệu chứng bạn đang gặp phải..."></textarea>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg" style="background: var(--admin-sidebar-bg); border: none; border-radius: 8px; font-weight: 600;">
+                        <i class="fas fa-check-circle me-2"></i> Xác nhận Đặt lịch
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Lấy danh sách bác sĩ từ ViewBag truyền sang JS
+        var doctors = @Html.Raw(Json.Serialize(doctors));
+
+        document.getElementById('specialty-select').addEventListener('change', function() {
+            var specId = this.value;
+            var doctorSelect = document.getElementById('doctor-select');
+            
+            // Xóa options cũ
+            doctorSelect.innerHTML = '<option value="">-- Chọn bác sĩ --</option>';
+            
+            if (specId) {
+                // Lọc bác sĩ theo khoa
+                var filteredDocs = doctors.filter(function(d) {
+                    return d.MaChuyenKhoa.toString() === specId;
+                });
+                
+                if (filteredDocs.length > 0) {
+                    filteredDocs.forEach(function(d) {
+                        var option = document.createElement('option');
+                        option.value = d.MaNguoiDung;
+                        option.text = d.HoTen;
+                        doctorSelect.appendChild(option);
+                    });
+                    doctorSelect.disabled = false;
+                } else {
+                    doctorSelect.innerHTML = '<option value="">-- Không có bác sĩ nào --</option>';
+                    doctorSelect.disabled = true;
+                }
+            } else {
+                doctorSelect.innerHTML = '<option value="">-- Vui lòng chọn khoa trước --</option>';
+                doctorSelect.disabled = true;
+            }
+        });
+    </script>
+}

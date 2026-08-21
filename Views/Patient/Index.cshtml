@@ -1,3 +1,4 @@
+@model List<MyMvcApp.Models.LichKham>
 @{
     ViewData["Title"] = "My Health Dashboard";
     Layout = "_PortalLayout";
@@ -6,19 +7,97 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Sức khỏe của tôi</h4>
-        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Hồ sơ y tế cá nhân</div>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Tổng quan hồ sơ & lịch khám</div>
     </div>
-    <button class="btn" style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500;">
+    <a asp-action="BookAppointment" class="btn" style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500; text-decoration: none;">
         <i class="fas fa-calendar-plus me-2"></i> Đặt lịch khám mới
-    </button>
+    </a>
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="admin-card p-4 text-center">
-            <h5 class="text-warning"><i class="fas fa-notes-medical fa-3x mb-3"></i></h5>
-            <h4>Khu vực dành cho Bệnh nhân</h4>
-            <p class="text-muted">Lịch sử khám chữa bệnh, đơn thuốc và hóa đơn thanh toán sẽ được lưu trữ tại đây.</p>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="admin-card p-4 h-100">
+            <h5 style="font-weight: 600; margin-bottom: 1rem;"><i class="fas fa-calendar-check text-primary me-2"></i> Lịch khám sắp tới</h5>
+            
+            @if (Model != null && Model.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var appt in Model)
+                    {
+                        var statusClass = appt.TrangThai == "ChoXacNhan" ? "text-warning" : (appt.TrangThai == "DaXacNhan" ? "text-success" : "text-secondary");
+                        var statusText = appt.TrangThai == "ChoXacNhan" ? "Đang chờ xác nhận" : (appt.TrangThai == "DaXacNhan" ? "Đã xác nhận" : "Hoàn tất");
+
+                        <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center" style="border-color: var(--admin-border);">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div style="background: #e0e7ff; color: #4f46e5; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                                    <span style="font-weight: 700; line-height: 1;">@appt.NgayKham.ToString("dd")</span>
+                                    <span style="font-size: 0.7rem; font-weight: 600;">Th @appt.NgayKham.ToString("MM")</span>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--admin-text-dark);">Lúc @appt.GioKham.ToString(@"hh\:mm")</div>
+                                    <div style="font-size: 0.85rem; color: var(--admin-text-muted);">
+                                        Khám với <strong>@appt.BacSi?.HoTen</strong> - @appt.BacSi?.ChuyenKhoa?.TenChuyenKhoa
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(appt.LyDoKham))
+                                    {
+                                        <div style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">
+                                            <i class="fas fa-notes-medical me-1"></i> @appt.LyDoKham
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="@statusClass" style="font-size: 0.85rem; font-weight: 500;">
+                                    <i class="fas fa-circle" style="font-size: 0.5rem; vertical-align: middle; margin-right: 2px;"></i> @statusText
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-calendar-times fa-3x mb-3 text-light"></i>
+                    <h6>Bạn chưa có lịch khám nào sắp tới</h6>
+                    <p style="font-size: 0.9rem;">Hãy đặt lịch khám để chúng tôi được chăm sóc sức khỏe cho bạn.</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="admin-card p-4 h-100" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border: none;">
+            <div class="text-center mb-4">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.1); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 1rem;">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h5 style="font-weight: 600;">Hồ sơ Y tế</h5>
+                <p style="font-size: 0.9rem; color: #cbd5e1;">Quản lý thông tin khám bệnh cá nhân của bạn</p>
+            </div>
+            
+            <div class="d-grid gap-3">
+                <a asp-action="MedicalRecords" class="btn btn-outline-light d-flex justify-content-between align-items-center" style="border-radius: 8px; text-align: left;">
+                    <span><i class="fas fa-file-medical me-2"></i> Kết quả khám bệnh</span>
+                    <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+                </a>
+                <a href="#" class="btn btn-outline-light d-flex justify-content-between align-items-center" style="border-radius: 8px; text-align: left; opacity: 0.7;">
+                    <span><i class="fas fa-pills me-2"></i> Đơn thuốc (Sắp ra mắt)</span>
+                    <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+                </a>
+                <a href="#" class="btn btn-outline-light d-flex justify-content-between align-items-center" style="border-radius: 8px; text-align: left; opacity: 0.7;">
+                    <span><i class="fas fa-file-invoice-dollar me-2"></i> Lịch sử thanh toán</span>
+                    <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+                </a>
+            </div>
         </div>
     </div>
 </div>
