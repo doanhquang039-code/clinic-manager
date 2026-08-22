@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Admin Portal</title>
+    @inject MyMvcApp.Models.ApplicationDbContext DbContext
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
@@ -50,17 +51,17 @@
                 <a asp-controller="Manager" asp-action="Index" class="admin-nav-item @(currentRoute == "Index" ? "active" : "")">
                     <i class="fas fa-chart-pie"></i> Tổng quan
                 </a>
+                <a asp-controller="Manager" asp-action="Schedules" class="admin-nav-item @(currentRoute == "Schedules" ? "active" : "")">
+                    <i class="fas fa-calendar-alt"></i> Quản lý Lịch khám
+                </a>
                 <a asp-controller="Manager" asp-action="Personnel" class="admin-nav-item @(currentRoute == "Personnel" ? "active" : "")">
-                    <i class="fas fa-users-cog"></i> Quản lý nhân sự
+                    <i class="fas fa-users-cog"></i> Quản lý Nhân sự
                 </a>
                 <a asp-controller="Manager" asp-action="Patients" class="admin-nav-item @(currentRoute == "Patients" ? "active" : "")">
-                    <i class="fas fa-procedures"></i> Quản lý bệnh nhân
-                </a>
-                <a asp-controller="Manager" asp-action="Inventory" class="admin-nav-item @(currentRoute == "Inventory" ? "active" : "")">
-                    <i class="fas fa-pills"></i> Kho thuốc & Vật tư
+                    <i class="fas fa-procedures"></i> Quản lý Bệnh nhân
                 </a>
                 <a asp-controller="Manager" asp-action="Invoices" class="admin-nav-item @(currentRoute == "Invoices" ? "active" : "")">
-                    <i class="fas fa-file-invoice-dollar"></i> Quản lý hóa đơn
+                    <i class="fas fa-file-invoice-dollar"></i> Hóa đơn
                 </a>
                 <a asp-controller="Manager" asp-action="Reports" class="admin-nav-item @(currentRoute == "Reports" ? "active" : "")">
                     <i class="fas fa-chart-line"></i> Báo cáo toàn diện
@@ -71,32 +72,26 @@
                 <a asp-controller="Doctor" asp-action="Index" class="admin-nav-item @(currentRoute == "Index" ? "active" : "")">
                     <i class="fas fa-calendar-check"></i> Lịch hẹn hôm nay
                 </a>
-                <a asp-controller="Doctor" asp-action="Consultation" class="admin-nav-item @(currentRoute == "Consultation" ? "active" : "")">
-                    <i class="fas fa-stethoscope"></i> Phòng khám bệnh
+                <a asp-controller="Doctor" asp-action="Appointments" class="admin-nav-item @(currentRoute == "Appointments" ? "active" : "")">
+                    <i class="fas fa-list-alt"></i> Quản lý Đơn hẹn
+                </a>
+                <a asp-controller="Doctor" asp-action="MonthlySchedule" class="admin-nav-item @(currentRoute == "MonthlySchedule" ? "active" : "")">
+                    <i class="fas fa-calendar-alt"></i> Lịch cả tháng
                 </a>
                 <a asp-controller="Doctor" asp-action="History" class="admin-nav-item @(currentRoute == "History" ? "active" : "")">
                     <i class="fas fa-history"></i> Lịch sử ca khám
                 </a>
             }
-            else if (User.IsInRole("LeTan"))
-            {
-                <a asp-controller="Staff" asp-action="Index" class="admin-nav-item @(currentRoute == "Index" ? "active" : "")">
-                    <i class="fas fa-concierge-bell"></i> Tiếp đón & Đăng ký
-                </a>
-                <a asp-controller="Staff" asp-action="Appointments" class="admin-nav-item @(currentRoute == "Appointments" ? "active" : "")">
-                    <i class="fas fa-calendar-alt"></i> Điều phối lịch hẹn
-                </a>
-                <a asp-controller="Staff" asp-action="Tracking" class="admin-nav-item @(currentRoute == "Tracking" ? "active" : "")">
-                    <i class="fas fa-tv"></i> Bảng theo dõi
-                </a>
-            }
             else if (User.IsInRole("ThuNgan"))
             {
                 <a asp-controller="Cashier" asp-action="Index" class="admin-nav-item @(currentRoute == "Index" ? "active" : "")">
-                    <i class="fas fa-wallet"></i> Tổng quan
+                    <i class="fas fa-wallet"></i> Hàng đợi thu tiền
                 </a>
                 <a asp-controller="Cashier" asp-action="Invoices" class="admin-nav-item @(currentRoute == "Invoices" ? "active" : "")">
-                    <i class="fas fa-file-invoice-dollar"></i> Quản lý hóa đơn
+                    <i class="fas fa-file-invoice-dollar"></i> Danh sách Hóa đơn
+                </a>
+                <a asp-controller="Cashier" asp-action="DaySummary" class="admin-nav-item @(currentRoute == "DaySummary" ? "active" : "")">
+                    <i class="fas fa-chart-bar"></i> Tổng kết cuối ngày
                 </a>
                 <a asp-controller="Cashier" asp-action="History" class="admin-nav-item @(currentRoute == "History" ? "active" : "")">
                     <i class="fas fa-receipt"></i> Lịch sử giao dịch
@@ -104,17 +99,17 @@
             }
             else if (User.IsInRole("BenhNhan"))
             {
-                <a asp-controller="Patient" asp-action="Home" class="admin-nav-item @(currentRoute == "Home" ? "active" : "")">
-                    <i class="fas fa-home"></i> Trang chủ
+                <a asp-controller="Patient" asp-action="Index" class="admin-nav-item @(currentRoute == "Index" ? "active" : "")">
+                    <i class="fas fa-home"></i> Dashboard
                 </a>
                 <a asp-controller="Patient" asp-action="BookAppointment" class="admin-nav-item @(currentRoute == "BookAppointment" ? "active" : "")">
                     <i class="fas fa-calendar-plus"></i> Đặt lịch khám
                 </a>
-                <a asp-controller="Patient" asp-action="Index" class="admin-nav-item @(currentRoute == "Index" ? "active" : "")">
-                    <i class="fas fa-calendar-check"></i> Lịch khám của tôi
-                </a>
                 <a asp-controller="Patient" asp-action="MedicalRecords" class="admin-nav-item @(currentRoute == "MedicalRecords" ? "active" : "")">
                     <i class="fas fa-notes-medical"></i> Hồ sơ sức khỏe
+                </a>
+                <a asp-controller="Patient" asp-action="Profile" class="admin-nav-item @(currentRoute == "Profile" ? "active" : "")">
+                    <i class="fas fa-user-edit"></i> Thông tin cá nhân
                 </a>
             }
         </div>
@@ -145,12 +140,34 @@
                 <div style="font-size: 0.85rem; font-weight: 500;">
                     @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
                 </div>
-                <div style="position: relative; cursor: pointer;">
+                @{
+                    int notificationCount = 0;
+                    string notifLink = "#";
+                    
+                    if (userRole == "BacSi") {
+                        var idClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                        if (int.TryParse(idClaim, out int docId)) {
+                            notificationCount = DbContext.LichKhams.Count(l => l.MaBacSi == docId && l.TrangThai == "ChoXacNhan");
+                            notifLink = Url.Action("Appointments", "Doctor", new { status = "pending" });
+                        }
+                    } else if (userRole == "Manager") {
+                        notificationCount = DbContext.LichKhams.Count(l => l.TrangThai == "ChoXacNhan");
+                        notifLink = Url.Action("Schedules", "Manager");
+                    } else if (userRole == "ThuNgan") {
+                        notificationCount = DbContext.HoaDons.Count(h => h.TrangThaiThanhToan != "DaThanhToan");
+                        notifLink = Url.Action("Index", "Cashier");
+                    }
+                }
+                <a href="@notifLink" style="position: relative; cursor: pointer; color: var(--admin-text-muted); text-decoration: none;" title="Bạn có @notificationCount thông báo mới">
                     <i class="far fa-bell" style="font-size: 1.25rem;"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                        <span class="visually-hidden">New alerts</span>
-                    </span>
-                </div>
+                    @if (notificationCount > 0)
+                    {
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.25em 0.4em;">
+                            @(notificationCount > 9 ? "9+" : notificationCount.ToString())
+                            <span class="visually-hidden">New alerts</span>
+                        </span>
+                    }
+                </a>
                 <div class="d-flex align-items-center gap-2 border-start ps-3 ms-2">
                     <div class="admin-avatar" style="width: 35px; height: 35px; font-size: 0.8rem;">@initial</div>
                     <div style="line-height: 1.2;">

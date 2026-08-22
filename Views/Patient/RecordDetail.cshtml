@@ -1,0 +1,89 @@
+@model MyMvcApp.Models.PhieuKham
+@{
+    ViewData["Title"] = "Chi tiết Phiếu khám";
+    Layout = "_PortalLayout";
+}
+
+<div class="mb-4">
+    <a asp-action="MedicalRecords" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Quay lại Hồ sơ</a>
+    <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Chi tiết Phiếu khám</h4>
+    <div style="color:var(--admin-text-muted);font-size:0.9rem;">PK-@Model.MaPhieuKham.ToString("D5") — @Model.NgayKham?.ToString("dd/MM/yyyy HH:mm")</div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="admin-card p-4" style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;">
+            <h6 style="font-weight:600;color:#0369a1;margin-bottom:1.5rem;"><i class="fas fa-user-md me-2"></i>Thông tin Bác sĩ điều trị</h6>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width:56px;height:56px;border-radius:50%;background:#0ea5e9;color:white;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;">
+                    @Model.BacSi?.HoTen.Substring(0,1).ToUpper()
+                </div>
+                <div>
+                    <div style="font-weight:700;font-size:1rem;">@Model.BacSi?.HoTen</div>
+                    <div style="color:#0369a1;font-size:0.85rem;font-weight:600;">@Model.BacSi?.ChuyenKhoa?.TenChuyenKhoa</div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.HoaDon != null)
+        {
+            <div class="admin-card p-4 mt-3" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;">
+                <h6 style="font-weight:600;color:#166534;margin-bottom:1rem;"><i class="fas fa-file-invoice-dollar me-2"></i>Thông tin Hóa đơn</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span style="color:#64748b;">Mã hóa đơn:</span>
+                    <strong>HD-@Model.HoaDon.MaHoaDon.ToString("D5")</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span style="color:#64748b;">Tổng tiền:</span>
+                    <strong style="color:#166534;font-size:1.1rem;">@String.Format("{0:N0}", Model.HoaDon.TongTien)đ</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span style="color:#64748b;">Trạng thái:</span>
+                    <span class="badge bg-success">Đã thanh toán</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="admin-card p-3 mt-3 text-center" style="background:#fffbeb;border:1px solid #fde68a;">
+                <i class="fas fa-clock text-warning me-2"></i>
+                <span style="color:#92400e;font-size:0.9rem;">Chưa có hóa đơn thanh toán</span>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-7">
+        <div class="admin-card p-4">
+            <h6 style="font-weight:600;color:#334155;margin-bottom:1.5rem;"><i class="fas fa-file-medical text-primary me-2"></i>Kết quả Khám bệnh</h6>
+
+            <div class="mb-4 p-3" style="background:#f8fafc;border-radius:10px;border-left:4px solid #6366f1;">
+                <div style="font-size:0.78rem;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:6px;">Chẩn đoán</div>
+                <div style="font-weight:700;font-size:1.05rem;color:#0f172a;">@Model.ChanDoan</div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.TrieuChung))
+            {
+                <div class="mb-4">
+                    <div style="font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Triệu chứng</div>
+                    <p style="color:#475569;margin:0;line-height:1.6;">@Model.TrieuChung</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.LoiDan))
+            {
+                <div class="mb-4 p-3" style="background:#fffbeb;border-radius:10px;border-left:4px solid #f59e0b;">
+                    <div style="font-size:0.78rem;font-weight:700;color:#f59e0b;text-transform:uppercase;margin-bottom:6px;"><i class="fas fa-comment-medical me-1"></i>Lời dặn của Bác sĩ</div>
+                    <p style="color:#475569;margin:0;line-height:1.6;">@Model.LoiDan</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.GhiChu))
+            {
+                <div class="mb-4">
+                    <div style="font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Ghi chú</div>
+                    <p style="color:#94a3b8;margin:0;font-style:italic;">@Model.GhiChu</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

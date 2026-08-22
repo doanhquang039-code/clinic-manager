@@ -1,0 +1,139 @@
+@model List<MyMvcApp.Models.LichKham>
+@{
+    ViewData["Title"] = "Quản lý Lịch khám";
+    Layout = "_PortalLayout";
+
+    var selectedDate = ViewBag.SelectedDate as DateTime? ?? DateTime.Today;
+    var doctors = ViewBag.Doctors as List<MyMvcApp.Models.NguoiDung> ?? new();
+    var selectedDocId = ViewBag.SelectedDoctorId as int?;
+
+    string StatusBadge(string s) => s switch {
+        "DaXacNhan" => "background:#dcfce7;color:#166534",
+        "ChoXacNhan" => "background:#fef3c7;color:#92400e",
+        "DaHuy" => "background:#fee2e2;color:#991b1b",
+        _ => "background:#f1f5f9;color:#475569"
+    };
+    string StatusLabel(string s) => s switch {
+        "DaXacNhan" => "✓ Đã xác nhận",
+        "ChoXacNhan" => "⏳ Chờ xác nhận",
+        "DaHuy" => "✕ Đã hủy",
+        _ => s
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Quản lý Lịch khám</h4>
+        <div style="color:var(--admin-text-muted);font-size:0.9rem;">Tìm kiếm & xác nhận lịch khám</div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" style="border-radius:8px;">@TempData["SuccessMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<!-- Bộ lọc -->
+<form method="get" class="admin-card p-3 mb-4 d-flex gap-3 align-items-end flex-wrap">
+    <div style="flex:0 0 200px;">
+        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#475569;">NGÀY KHÁM</label>
+        <input type="date" name="date" value="@selectedDate.ToString("yyyy-MM-dd")" class="form-control" style="border-radius:8px;" />
+    </div>
+    <div style="flex:1;min-width:200px;">
+        <label class="form-label fw-semibold" style="font-size:0.82rem;color:#475569;">BÁC SĨ</label>
+        <select name="doctorId" class="form-select" style="border-radius:8px;">
+            <option value="">Tất cả bác sĩ</option>
+            @foreach (var doc in doctors)
+            {
+                <option value="@doc.MaNguoiDung" selected="@(selectedDocId == doc.MaNguoiDung)">@doc.HoTen</option>
+            }
+        </select>
+    </div>
+    <div>
+        <button type="submit" class="btn" style="background:var(--admin-sidebar-bg);color:white;border-radius:8px;padding:0.55rem 1.25rem;">
+            <i class="fas fa-filter me-1"></i> Lọc
+        </button>
+    </div>
+    <div>
+        <a asp-action="Schedules" class="btn btn-light" style="border-radius:8px;border:1px solid var(--admin-border);">Hôm nay</a>
+    </div>
+</form>
+
+<div class="admin-table-container">
+    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="mb-0" style="font-weight:600;">
+            <i class="fas fa-calendar-day text-primary me-2"></i>
+            @selectedDate.ToString("dddd, dd/MM/yyyy") — @Model.Count ca
+        </h6>
+    </div>
+
+    @if (Model.Any())
+    {
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="width:10%">GIỜ KHÁM</th>
+                    <th style="width:22%">BỆNH NHÂN</th>
+                    <th style="width:22%">BÁC SĨ</th>
+                    <th style="width:22%">LÝ DO KHÁM</th>
+                    <th style="width:12%;text-align:center">TRẠNG THÁI</th>
+                    <th style="width:12%;text-align:center">THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td style="font-weight:700;color:#6366f1;font-size:1rem;">@item.GioKham.ToString(@"hh\:mm")</td>
+                        <td>
+                            <div style="font-weight:600;">@item.BenhNhan?.HoTen</div>
+                            <div style="font-size:0.78rem;color:#94a3b8;">@item.BenhNhan?.SoDienThoai</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:500;">@item.BacSi?.HoTen</div>
+                            <div style="font-size:0.78rem;color:#94a3b8;">@item.BacSi?.ChuyenKhoa?.TenChuyenKhoa</div>
+                        </td>
+                        <td style="font-size:0.85rem;color:#64748b;">@(string.IsNullOrEmpty(item.LyDoKham) ? "-" : item.LyDoKham)</td>
+                        <td style="text-align:center;">
+                            <span style="padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;@StatusBadge(item.TrangThai)">
+                                @StatusLabel(item.TrangThai)
+                            </span>
+                        </td>
+                        <td style="text-align:center;">
+                            @if (item.TrangThai == "ChoXacNhan")
+                            {
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <form asp-action="ApproveAppointment" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@item.MaLichKham" />
+                                        <input type="hidden" name="action" value="approve" />
+                                        <button type="submit" class="btn btn-sm btn-success" style="border-radius:6px;" title="Xác nhận">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="ApproveAppointment" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@item.MaLichKham" />
+                                        <input type="hidden" name="action" value="reject" />
+                                        <button type="submit" class="btn btn-sm btn-danger" style="border-radius:6px;" title="Hủy">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <span style="color:#94a3b8;font-size:0.82rem;">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="p-5 text-center text-muted">
+            <i class="fas fa-calendar-times fa-3x mb-3" style="color:#e2e8f0;"></i>
+            <h5>Không có lịch khám nào vào ngày này.</h5>
+        </div>
+    }
+</div>

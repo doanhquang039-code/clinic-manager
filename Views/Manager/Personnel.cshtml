@@ -1,0 +1,172 @@
+@model List<MyMvcApp.Models.NguoiDung>
+@{
+    ViewData["Title"] = "Quản lý Nhân sự";
+    Layout = "_PortalLayout";
+    var specialties = ViewBag.Specialties as List<MyMvcApp.Models.ChuyenKhoa> ?? new();
+
+    string RoleBadge(string role) => role switch {
+        "Admin" => "bg-danger",
+        "Manager" => "bg-primary",
+        "BacSi" => "bg-success",
+        "ThuNgan" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+    string RoleLabel(string role) => role switch {
+        "Admin" => "Admin",
+        "Manager" => "Quản lý",
+        "BacSi" => "Bác sĩ",
+        "ThuNgan" => "Thu ngân",
+        _ => role
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Quản lý Nhân sự</h4>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Tổng cộng @Model.Count nhân viên</div>
+    </div>
+    <button class="btn" data-bs-toggle="modal" data-bs-target="#createStaffModal"
+            style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500;">
+        <i class="fas fa-plus me-2"></i> Thêm nhân viên
+    </button>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" style="border-radius:8px;">@TempData["SuccessMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="admin-table-container">
+    <form method="get" class="d-flex justify-content-between align-items-center p-3 border-bottom gap-3">
+        <div class="admin-search" style="flex:1; background:transparent; border:1px solid var(--admin-border);">
+            <i class="fas fa-search text-muted"></i>
+            <input type="text" name="search" value="@ViewData["CurrentSearch"]" placeholder="Tìm họ tên, email, SĐT..." />
+        </div>
+        <select name="roleFilter" class="form-select" style="width:180px; border:1px solid var(--admin-border);" onchange="this.form.submit()">
+            <option value="">Tất cả vai trò</option>
+            <option value="BacSi" selected="@(ViewData["CurrentRole"]?.ToString()=="BacSi")">Bác sĩ</option>
+            <option value="ThuNgan" selected="@(ViewData["CurrentRole"]?.ToString()=="ThuNgan")">Thu ngân</option>
+            <option value="Manager" selected="@(ViewData["CurrentRole"]?.ToString()=="Manager")">Quản lý</option>
+            <option value="Admin" selected="@(ViewData["CurrentRole"]?.ToString()=="Admin")">Admin</option>
+        </select>
+        <button type="submit" class="btn btn-light" style="border:1px solid var(--admin-border);">Lọc</button>
+        <a asp-action="Personnel" class="btn btn-link text-muted" style="text-decoration:none;">Xóa lọc</a>
+    </form>
+
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th style="width:5%">#</th>
+                <th style="width:28%">HỌ TÊN</th>
+                <th style="width:20%">EMAIL / SĐT</th>
+                <th style="width:15%">VAI TRÒ</th>
+                <th style="width:15%">CHUYÊN KHOA</th>
+                <th style="width:10%">TRẠNG THÁI</th>
+                <th style="width:7%; text-align:center">THAO TÁC</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="color:#94a3b8; font-size:0.85rem;">@item.MaNguoiDung</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:36px;height:36px;border-radius:50%;background:#e0e7ff;color:#6366f1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;">
+                                @item.HoTen.Substring(0,1).ToUpper()
+                            </div>
+                            <div>
+                                <div style="font-weight:600;">@item.HoTen</div>
+                                <div style="font-size:0.75rem;color:#94a3b8;">Tham gia: @item.NgayTao?.ToString("dd/MM/yyyy")</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size:0.85rem;">@item.Email</div>
+                        <div style="font-size:0.8rem;color:#94a3b8;">@item.SoDienThoai</div>
+                    </td>
+                    <td><span class="badge @RoleBadge(item.Role)" style="padding:0.4rem 0.8rem;">@RoleLabel(item.Role)</span></td>
+                    <td style="font-size:0.85rem;color:#64748b;">@(item.ChuyenKhoa?.TenChuyenKhoa ?? "-")</td>
+                    <td>
+                        @if (item.TrangThai)
+                        {
+                            <span style="color:#22c55e;font-weight:600;font-size:0.85rem;"><i class="fas fa-circle" style="font-size:0.5rem;vertical-align:middle;margin-right:4px;"></i> Hoạt động</span>
+                        }
+                        else
+                        {
+                            <span style="color:#ef4444;font-weight:600;font-size:0.85rem;"><i class="fas fa-circle" style="font-size:0.5rem;vertical-align:middle;margin-right:4px;"></i> Bị khóa</span>
+                        }
+                    </td>
+                    <td style="text-align:center;">
+                        <form asp-action="UpdateStaffStatus" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="@item.MaNguoiDung" />
+                            <input type="hidden" name="status" value="@(!item.TrangThai)" />
+                            <button type="submit" class="btn btn-sm @(item.TrangThai ? "btn-outline-danger" : "btn-outline-success")" style="border-radius:6px;"
+                                    title="@(item.TrangThai ? "Khóa tài khoản" : "Kích hoạt")">
+                                <i class="fas @(item.TrangThai ? "fa-lock" : "fa-lock-open")"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal thêm nhân viên -->
+<div class="modal fade" id="createStaffModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:12px;border:none;">
+            <div class="modal-header" style="background:var(--admin-sidebar-bg);color:white;border-radius:12px 12px 0 0;">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i> Thêm nhân viên mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CreateStaff" method="post">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ và tên *</label>
+                            <input name="HoTen" class="form-control" style="border-radius:8px;" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại *</label>
+                            <input name="SoDienThoai" class="form-control" style="border-radius:8px;" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email *</label>
+                            <input name="Email" type="email" class="form-control" style="border-radius:8px;" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mật khẩu (mặc định: 123456)</label>
+                            <input name="MatKhau" class="form-control" style="border-radius:8px;" placeholder="123456" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Vai trò *</label>
+                            <select name="Role" class="form-select" style="border-radius:8px;" required>
+                                <option value="BacSi">Bác sĩ</option>
+                                <option value="ThuNgan">Thu ngân</option>
+                                <option value="Manager">Quản lý</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Chuyên khoa (Bác sĩ)</label>
+                            <select name="MaChuyenKhoa" class="form-select" style="border-radius:8px;">
+                                <option value="">-- Không áp dụng --</option>
+                                @foreach (var spec in specialties)
+                                {
+                                    <option value="@spec.MaChuyenKhoa">@spec.TenChuyenKhoa</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn" style="background:var(--admin-sidebar-bg);color:white;border-radius:8px;">
+                        <i class="fas fa-save me-2"></i> Lưu nhân viên
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

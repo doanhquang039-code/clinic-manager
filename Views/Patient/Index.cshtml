@@ -44,7 +44,7 @@
                                 <div>
                                     <div style="font-weight: 600; color: var(--admin-text-dark);">Lúc @appt.GioKham.ToString(@"hh\:mm")</div>
                                     <div style="font-size: 0.85rem; color: var(--admin-text-muted);">
-                                        Khám với <strong>@appt.BacSi?.HoTen</strong> - @appt.BacSi?.ChuyenKhoa?.TenChuyenKhoa
+                                        Khám với <strong>@appt.BacSi?.HoTen</strong> — @appt.BacSi?.ChuyenKhoa?.TenChuyenKhoa
                                     </div>
                                     @if (!string.IsNullOrEmpty(appt.LyDoKham))
                                     {
@@ -54,10 +54,19 @@
                                     }
                                 </div>
                             </div>
-                            <div class="text-end">
+                            <div class="text-end d-flex flex-column gap-2 align-items-end">
                                 <span class="@statusClass" style="font-size: 0.85rem; font-weight: 500;">
                                     <i class="fas fa-circle" style="font-size: 0.5rem; vertical-align: middle; margin-right: 2px;"></i> @statusText
                                 </span>
+                                @if (appt.TrangThai == "ChoXacNhan")
+                                {
+                                    <form asp-action="CancelAppointment" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn hủy lịch khám này không?')">
+                                        <input type="hidden" name="id" value="@appt.MaLichKham" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:6px;font-size:0.75rem;padding:2px 10px;">
+                                            <i class="fas fa-times me-1"></i> Hủy lịch
+                                        </button>
+                                    </form>
+                                }
                             </div>
                         </div>
                     }

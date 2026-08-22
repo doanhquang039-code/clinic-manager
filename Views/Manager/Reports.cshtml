@@ -1,0 +1,129 @@
+@{
+    ViewData["Title"] = "Báo cáo Toàn diện";
+    Layout = "_PortalLayout";
+
+    var monthlyRevenue = ViewBag.MonthlyRevenue as List<decimal> ?? new();
+    var monthLabels = ViewBag.MonthLabels as List<string> ?? new();
+    var bySpecialty = ViewBag.BySpecialty as IEnumerable<dynamic>;
+
+    var revJson = System.Text.Json.JsonSerializer.Serialize(monthlyRevenue);
+    var labJson = System.Text.Json.JsonSerializer.Serialize(monthLabels);
+
+    var specNames = bySpecialty?.Select(x => (string)x.Name).ToList() ?? new();
+    var specCounts = bySpecialty?.Select(x => (int)x.Count).ToList() ?? new();
+    var specNamesJson = System.Text.Json.JsonSerializer.Serialize(specNames);
+    var specCountsJson = System.Text.Json.JsonSerializer.Serialize(specCounts);
+}
+
+<div class="mb-4">
+    <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Báo cáo toàn diện</h4>
+    <div style="color:var(--admin-text-muted);font-size:0.9rem;">Thống kê và phân tích hoạt động phòng khám</div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card p-4 text-center" style="background:linear-gradient(135deg,#6366f1,#818cf8);color:white;border:none;">
+            <i class="fas fa-procedures fa-2x mb-2"></i>
+            <div style="font-size:2rem;font-weight:700;">@ViewBag.TotalPatients</div>
+            <div style="font-size:0.85rem;opacity:0.9;">Tổng bệnh nhân</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-4 text-center" style="background:linear-gradient(135deg,#22c55e,#4ade80);color:white;border:none;">
+            <i class="fas fa-calendar-check fa-2x mb-2"></i>
+            <div style="font-size:2rem;font-weight:700;">@ViewBag.TotalAppointments</div>
+            <div style="font-size:0.85rem;opacity:0.9;">Tổng lịch khám</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-4 text-center" style="background:linear-gradient(135deg,#f59e0b,#fbbf24);color:white;border:none;">
+            <i class="fas fa-user-md fa-2x mb-2"></i>
+            <div style="font-size:2rem;font-weight:700;">@ViewBag.TotalDoctors</div>
+            <div style="font-size:0.85rem;opacity:0.9;">Bác sĩ</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-4 text-center" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:white;border:none;">
+            <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+            <div style="font-size:1.5rem;font-weight:700;">@String.Format("{0:N0}", ViewBag.TotalRevenue)đ</div>
+            <div style="font-size:0.85rem;opacity:0.9;">Tổng doanh thu</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
+            <h6 style="font-weight:600;color:#334155;margin-bottom:1.5rem;"><i class="fas fa-chart-line text-primary me-2"></i>Doanh thu 6 tháng gần nhất</h6>
+            <canvas id="revenueChart" height="140"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="admin-card p-4">
+            <h6 style="font-weight:600;color:#334155;margin-bottom:1.5rem;"><i class="fas fa-chart-pie text-warning me-2"></i>Ca khám theo chuyên khoa</h6>
+            @if (specNames.Any())
+            {
+                <canvas id="specialtyChart" height="200"></canvas>
+            }
+            else
+            {
+                <div class="text-center text-muted py-4">Chưa có dữ liệu</div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// Revenue chart
+new Chart(document.getElementById('revenueChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: @Html.Raw(labJson),
+        datasets: [{
+            label: 'Doanh thu (VNĐ)',
+            data: @Html.Raw(revJson),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.08)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2,
+            pointBackgroundColor: '#6366f1',
+            pointRadius: 5,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// Specialty pie chart
+@if (specNames.Any())
+{
+    <text>
+    new Chart(document.getElementById('specialtyChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: @Html.Raw(specNamesJson),
+            datasets: [{
+                data: @Html.Raw(specCountsJson),
+                backgroundColor: ['#6366f1','#22c55e','#f59e0b','#0ea5e9','#ef4444','#8b5cf6'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } }
+        }
+    });
+    </text>
+}
+</script>
+}

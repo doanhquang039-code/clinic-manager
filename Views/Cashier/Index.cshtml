@@ -1,21 +1,115 @@
+@model List<MyMvcApp.Models.PhieuKham>
 @{
-    ViewData["Title"] = "Cashier Dashboard";
+    ViewData["Title"] = "Dashboard Thu ngân";
     Layout = "_PortalLayout";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Thu ngân</h4>
-        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Tổng quan thu chi trong ca trực</div>
+<div class="mb-4">
+    <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Quầy Thu ngân</h4>
+    <div style="color:var(--admin-text-muted);font-size:0.9rem;">Hàng đợi thanh toán — @DateTime.Now.ToString("dddd, dd/MM/yyyy")</div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" style="border-radius:8px;">@TempData["SuccessMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<!-- KPI nhanh -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card p-3 d-flex align-items-center gap-3" style="border-left:4px solid #f59e0b;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;color:#f59e0b;font-size:1.3rem;"><i class="fas fa-clock"></i></div>
+            <div>
+                <div style="font-size:1.8rem;font-weight:700;line-height:1;">@ViewBag.PendingCount</div>
+                <div style="font-size:0.8rem;color:#64748b;">Chờ thanh toán</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-3 d-flex align-items-center gap-3" style="border-left:4px solid #22c55e;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#dcfce7;display:flex;align-items:center;justify-content:center;color:#22c55e;font-size:1.3rem;"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div style="font-size:1.8rem;font-weight:700;line-height:1;">@ViewBag.PaidCount</div>
+                <div style="font-size:0.8rem;color:#64748b;">Đã thu hôm nay</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-3 d-flex align-items-center gap-3" style="border-left:4px solid #6366f1;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;color:#6366f1;font-size:1.3rem;"><i class="fas fa-receipt"></i></div>
+            <div>
+                <div style="font-size:1.8rem;font-weight:700;line-height:1;">@ViewBag.TodayCount</div>
+                <div style="font-size:0.8rem;color:#64748b;">Tổng hóa đơn hôm nay</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-3 d-flex align-items-center gap-3" style="border-left:4px solid #0ea5e9;">
+            <div style="width:48px;height:48px;border-radius:12px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;color:#0ea5e9;font-size:1.3rem;"><i class="fas fa-coins"></i></div>
+            <div>
+                <div style="font-size:1.3rem;font-weight:700;line-height:1;">@String.Format("{0:N0}", ViewBag.TodayRevenue)đ</div>
+                <div style="font-size:0.8rem;color:#64748b;">Doanh thu hôm nay</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="admin-card p-4 text-center">
-            <h5 class="text-danger"><i class="fas fa-wallet fa-3x mb-3"></i></h5>
-            <h4>Khu vực dành cho Thu ngân</h4>
-            <p class="text-muted">Chức năng quản lý hóa đơn, thu tiền bệnh nhân và báo cáo dòng tiền sẽ được thực hiện tại đây.</p>
-        </div>
+<!-- Hàng đợi -->
+<div class="admin-table-container">
+    <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background:#fffbeb;">
+        <h6 class="mb-0" style="font-weight:600;color:#92400e;"><i class="fas fa-hourglass-half me-2 text-warning"></i>Danh sách chờ thanh toán (@(Model?.Count ?? 0) bệnh nhân)</h6>
+        <a asp-action="Invoices" class="text-primary text-decoration-none" style="font-size:0.85rem;">Xem tất cả hóa đơn →</a>
     </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="width:10%">MÃ PK</th>
+                    <th style="width:25%">BỆNH NHÂN</th>
+                    <th style="width:20%">BÁC SĨ / CHẨN ĐOÁN</th>
+                    <th style="width:15%">NGÀY KHÁM</th>
+                    <th style="width:15%;text-align:center">LẬP HÓA ĐƠN</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td style="font-weight:700;color:#6366f1;">PK-@item.MaPhieuKham.ToString("D5")</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:34px;height:34px;border-radius:50%;background:#fce7f3;color:#db2777;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                                    @item.BenhNhan?.HoTen.Substring(0,1).ToUpper()
+                                </div>
+                                <div>
+                                    <div style="font-weight:600;">@item.BenhNhan?.HoTen</div>
+                                    <div style="font-size:0.78rem;color:#94a3b8;">@item.BenhNhan?.SoDienThoai</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight:500;font-size:0.9rem;">@item.BacSi?.HoTen</div>
+                            <div style="font-size:0.78rem;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;">@item.ChanDoan</div>
+                        </td>
+                        <td style="font-size:0.85rem;">@item.NgayKham?.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td style="text-align:center;">
+                            <a asp-action="CreateInvoice" asp-route-phieuKhamId="@item.MaPhieuKham"
+                               class="btn btn-sm btn-warning" style="border-radius:6px;font-weight:600;">
+                                <i class="fas fa-file-invoice-dollar me-1"></i> Lập hóa đơn
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="p-5 text-center text-muted">
+            <i class="fas fa-check-double fa-3x mb-3 text-success"></i>
+            <h5>Tuyệt vời! Không còn bệnh nhân nào chờ thanh toán.</h5>
+        </div>
+    }
 </div>

@@ -1,0 +1,78 @@
+@model List<MyMvcApp.Models.BenhNhan>
+@{
+    ViewData["Title"] = "Quản lý Bệnh nhân";
+    Layout = "_PortalLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Quản lý Bệnh nhân</h4>
+        <div style="color:var(--admin-text-muted);font-size:0.9rem;">Tổng cộng @Model.Count bệnh nhân đã đăng ký</div>
+    </div>
+</div>
+
+<div class="admin-table-container">
+    <form method="get" class="d-flex justify-content-between align-items-center p-3 border-bottom gap-3">
+        <div class="admin-search" style="flex:1;background:transparent;border:1px solid var(--admin-border);">
+            <i class="fas fa-search text-muted"></i>
+            <input type="text" name="search" value="@ViewData["CurrentSearch"]" placeholder="Tìm họ tên, email, số điện thoại..." />
+        </div>
+        <button type="submit" class="btn btn-light" style="border:1px solid var(--admin-border);">
+            <i class="fas fa-search me-1"></i> Tìm kiếm
+        </button>
+        <a asp-action="Patients" class="btn btn-link text-muted" style="text-decoration:none;">Xóa lọc</a>
+    </form>
+
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th style="width:5%">MÃ</th>
+                <th style="width:25%">HỌ TÊN</th>
+                <th style="width:15%">NGÀY SINH / GT</th>
+                <th style="width:18%">LIÊN HỆ</th>
+                <th style="width:15%">CCCD</th>
+                <th style="width:12%">DỊ ỨNG</th>
+                <th style="width:10%">ĐĂNG KÝ</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="color:#94a3b8;font-size:0.85rem;">BN-@item.MaBenhNhan.ToString("D5")</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:36px;height:36px;border-radius:50%;background:#fce7f3;color:#db2777;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;">
+                                @item.HoTen.Substring(0,1).ToUpper()
+                            </div>
+                            <div>
+                                <div style="font-weight:600;">@item.HoTen</div>
+                                <div style="font-size:0.75rem;color:#94a3b8;">@item.DiaChi</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-size:0.85rem;">
+                        <div>@item.NgaySinh.ToString("dd/MM/yyyy")</div>
+                        <div style="color:#94a3b8;">@item.GioiTinh</div>
+                    </td>
+                    <td style="font-size:0.85rem;">
+                        <div>@item.SoDienThoai</div>
+                        <div style="color:#94a3b8;font-size:0.8rem;">@item.Email</div>
+                    </td>
+                    <td style="font-size:0.85rem;color:#64748b;">@(item.CCCD ?? "-")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.DiUng))
+                        {
+                            <span class="badge bg-danger-subtle text-danger" style="padding:0.4rem 0.7rem;border-radius:6px;">@item.DiUng</span>
+                        }
+                        else
+                        {
+                            <span style="color:#94a3b8;font-size:0.85rem;">Không</span>
+                        }
+                    </td>
+                    <td style="font-size:0.8rem;color:#64748b;">@item.NgayTao?.ToString("dd/MM/yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

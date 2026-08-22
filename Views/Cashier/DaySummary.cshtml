@@ -1,0 +1,146 @@
+@model List<MyMvcApp.Models.HoaDon>
+@{
+    ViewData["Title"] = "Tổng kết cuối ngày";
+    Layout = "_PortalLayout";
+    var targetDate = ViewBag.TargetDate as DateTime? ?? DateTime.Today;
+    decimal totalRevenue = ViewBag.TotalRevenue ?? 0m;
+    decimal cashRevenue = ViewBag.CashRevenue ?? 0m;
+    decimal transferRevenue = ViewBag.TransferRevenue ?? 0m;
+    decimal cardRevenue = ViewBag.CardRevenue ?? 0m;
+    int paidCount = ViewBag.PaidCount ?? 0;
+    int totalCount = ViewBag.TotalCount ?? 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Tổng kết cuối ngày</h4>
+        <div style="color:var(--admin-text-muted);font-size:0.9rem;">@targetDate.ToString("dddd, dd/MM/yyyy")</div>
+    </div>
+    <form method="get" class="d-flex gap-2 align-items-center">
+        <input type="date" name="date" value="@targetDate.ToString("yyyy-MM-dd")" class="form-control" style="border-radius:8px;width:180px;" />
+        <button type="submit" class="btn" style="background:var(--admin-sidebar-bg);color:white;border-radius:8px;">Xem</button>
+    </form>
+</div>
+
+<!-- Thống kê tổng -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card p-4 text-center" style="background:linear-gradient(135deg,#1e293b,#334155);color:white;border:none;">
+            <i class="fas fa-receipt fa-2x mb-2" style="color:#94a3b8;"></i>
+            <div style="font-size:2.2rem;font-weight:700;">@totalCount</div>
+            <div style="font-size:0.85rem;color:#94a3b8;">Tổng hóa đơn</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-4 text-center" style="background:linear-gradient(135deg,#22c55e,#4ade80);color:white;border:none;">
+            <i class="fas fa-check-circle fa-2x mb-2"></i>
+            <div style="font-size:2.2rem;font-weight:700;">@paidCount</div>
+            <div style="font-size:0.85rem;opacity:0.9;">Đã thu tiền</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="admin-card p-4 h-100" style="background:linear-gradient(135deg,#6366f1,#818cf8);color:white;border:none;">
+            <div class="d-flex justify-content-between align-items-center h-100">
+                <div>
+                    <div style="font-size:0.85rem;opacity:0.8;margin-bottom:4px;">TỔNG DOANH THU</div>
+                    <div style="font-size:2.2rem;font-weight:700;line-height:1;">@String.Format("{0:N0}", totalRevenue)đ</div>
+                </div>
+                <i class="fas fa-coins fa-3x" style="opacity:0.3;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Phân chia theo hình thức -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="admin-card p-3 d-flex gap-3 align-items-center" style="border-left:4px solid #f59e0b;">
+            <div style="font-size:1.5rem;">💵</div>
+            <div>
+                <div style="font-size:0.8rem;color:#64748b;">Tiền mặt</div>
+                <div style="font-weight:700;font-size:1.1rem;">@String.Format("{0:N0}", cashRevenue)đ</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="admin-card p-3 d-flex gap-3 align-items-center" style="border-left:4px solid #0ea5e9;">
+            <div style="font-size:1.5rem;">🏦</div>
+            <div>
+                <div style="font-size:0.8rem;color:#64748b;">Chuyển khoản</div>
+                <div style="font-weight:700;font-size:1.1rem;">@String.Format("{0:N0}", transferRevenue)đ</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="admin-card p-3 d-flex gap-3 align-items-center" style="border-left:4px solid #6366f1;">
+            <div style="font-size:1.5rem;">💳</div>
+            <div>
+                <div style="font-size:0.8rem;color:#64748b;">Thẻ ngân hàng</div>
+                <div style="font-weight:700;font-size:1.1rem;">@String.Format("{0:N0}", cardRevenue)đ</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Danh sách chi tiết -->
+<div class="admin-table-container">
+    <div class="p-3 border-bottom">
+        <h6 class="mb-0" style="font-weight:600;"><i class="fas fa-list me-2 text-primary"></i>Chi tiết giao dịch</h6>
+    </div>
+    @if (Model.Any())
+    {
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="width:10%">MÃ HD</th>
+                    <th style="width:25%">BỆNH NHÂN</th>
+                    <th style="width:15%">THỜI GIAN</th>
+                    <th style="width:15%">TỔNG TIỀN</th>
+                    <th style="width:15%">HÌNH THỨC</th>
+                    <th style="width:12%;text-align:center">TT</th>
+                    <th style="width:8%;text-align:center">IN</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td style="font-weight:700;color:#6366f1;">HD-@item.MaHoaDon.ToString("D5")</td>
+                        <td style="font-weight:600;">@item.PhieuKham?.BenhNhan?.HoTen</td>
+                        <td style="font-size:0.85rem;">@item.NgayLap?.ToString("HH:mm")</td>
+                        <td style="font-weight:700;color:@(item.TrangThaiThanhToan=="DaThanhToan"?"#22c55e":"#f59e0b");">
+                            @String.Format("{0:N0}", item.TongTien)đ
+                        </td>
+                        <td style="font-size:0.85rem;">
+                            @(item.PhuongThucThanhToan == "TienMat" ? "💵 Tiền mặt" :
+                              item.PhuongThucThanhToan == "ChuyenKhoan" ? "🏦 Chuyển khoản" : "💳 Thẻ NH")
+                        </td>
+                        <td style="text-align:center;">
+                            @if (item.TrangThaiThanhToan == "DaThanhToan")
+                            {
+                                <span class="badge bg-success" style="font-size:0.72rem;">Đã thu</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark" style="font-size:0.72rem;">Chờ thu</span>
+                            }
+                        </td>
+                        <td style="text-align:center;">
+                            <a asp-action="PrintInvoice" asp-route-id="@item.MaHoaDon" target="_blank"
+                               class="btn btn-sm btn-outline-secondary" style="border-radius:6px;" title="In hóa đơn">
+                                <i class="fas fa-print"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="p-5 text-center text-muted">
+            <i class="fas fa-calendar-times fa-3x mb-3 text-light"></i>
+            <h5>Không có giao dịch nào trong ngày này.</h5>
+        </div>
+    }
+</div>

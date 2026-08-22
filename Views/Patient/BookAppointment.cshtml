@@ -83,9 +83,11 @@
     <script>
         // Lấy danh sách bác sĩ từ ViewBag truyền sang JS
         var doctors = @Html.Raw(Json.Serialize(doctors));
+        console.log("Danh sách bác sĩ tải từ Server:", doctors);
 
         document.getElementById('specialty-select').addEventListener('change', function() {
             var specId = this.value;
+            console.log("Chuyên khoa đã chọn:", specId);
             var doctorSelect = document.getElementById('doctor-select');
             
             // Xóa options cũ
@@ -94,14 +96,16 @@
             if (specId) {
                 // Lọc bác sĩ theo khoa
                 var filteredDocs = doctors.filter(function(d) {
-                    return d.MaChuyenKhoa.toString() === specId;
+                    return d.maChuyenKhoa && d.maChuyenKhoa.toString() === specId;
                 });
                 
+                console.log("Danh sách bác sĩ sau khi lọc:", filteredDocs);
+
                 if (filteredDocs.length > 0) {
                     filteredDocs.forEach(function(d) {
                         var option = document.createElement('option');
-                        option.value = d.MaNguoiDung;
-                        option.text = d.HoTen;
+                        option.value = d.maNguoiDung;
+                        option.text = d.hoTen;
                         doctorSelect.appendChild(option);
                     });
                     doctorSelect.disabled = false;

@@ -1,0 +1,136 @@
+@model MyMvcApp.Models.HoaDon
+@{
+    ViewData["Title"] = "Lập Hóa đơn";
+    Layout = "_PortalLayout";
+    var phieuKham = ViewBag.PhieuKham as MyMvcApp.Models.PhieuKham;
+    decimal tienDichVu = ViewBag.TienDichVu ?? 0;
+    decimal phiKham = 200000;
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Quay lại hàng đợi</a>
+    <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Lập Hóa đơn</h4>
+    <div style="color:var(--admin-text-muted);font-size:0.9rem;">Phiếu khám PK-@phieuKham?.MaPhieuKham.ToString("D5")</div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" style="border-radius:8px;">@TempData["ErrorMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="row g-4">
+    <!-- Thông tin phiếu khám -->
+    <div class="col-lg-5">
+        <div class="admin-card p-4 h-100" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);">
+            <h6 style="font-weight:600;color:#334155;margin-bottom:1.5rem;"><i class="fas fa-file-medical text-primary me-2"></i>Thông tin Phiếu khám</h6>
+
+            <div class="mb-3 pb-3 border-bottom">
+                <div style="font-size:0.8rem;color:#94a3b8;text-transform:uppercase;font-weight:600;margin-bottom:4px;">Bệnh nhân</div>
+                <div style="font-weight:700;font-size:1.05rem;">@phieuKham?.BenhNhan?.HoTen</div>
+                <div style="font-size:0.85rem;color:#64748b;">@phieuKham?.BenhNhan?.SoDienThoai — @phieuKham?.BenhNhan?.GioiTinh</div>
+            </div>
+
+            <div class="mb-3 pb-3 border-bottom">
+                <div style="font-size:0.8rem;color:#94a3b8;text-transform:uppercase;font-weight:600;margin-bottom:4px;">Bác sĩ điều trị</div>
+                <div style="font-weight:600;">@phieuKham?.BacSi?.HoTen</div>
+                <div style="font-size:0.85rem;color:#64748b;">@phieuKham?.BacSi?.ChuyenKhoa?.TenChuyenKhoa</div>
+            </div>
+
+            <div class="mb-3 pb-3 border-bottom">
+                <div style="font-size:0.8rem;color:#94a3b8;text-transform:uppercase;font-weight:600;margin-bottom:4px;">Chẩn đoán</div>
+                <div style="font-weight:500;color:#1e293b;">@phieuKham?.ChanDoan</div>
+            </div>
+
+            <div>
+                <div style="font-size:0.8rem;color:#94a3b8;text-transform:uppercase;font-weight:600;margin-bottom:4px;">Ngày khám</div>
+                <div style="font-weight:500;">@phieuKham?.NgayKham?.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form lập hóa đơn -->
+    <div class="col-lg-7">
+        <div class="admin-card p-4">
+            <h6 style="font-weight:600;color:#334155;margin-bottom:1.5rem;"><i class="fas fa-calculator text-success me-2"></i>Chi tiết Hóa đơn</h6>
+
+            <form asp-action="SaveInvoice" method="post">
+                <input type="hidden" asp-for="MaPhieuKham" />
+                <input type="hidden" asp-for="MaNguoiLap" />
+
+                <!-- Bảng phí -->
+                <div class="table-responsive mb-4">
+                    <table class="table" style="border-radius:8px;overflow:hidden;border:1px solid #f1f5f9;">
+                        <thead style="background:#f8fafc;">
+                            <tr>
+                                <th style="border:none;color:#64748b;font-size:0.8rem;text-transform:uppercase;">Khoản mục</th>
+                                <th style="border:none;color:#64748b;font-size:0.8rem;text-align:right;text-transform:uppercase;">Số tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="border-color:#f1f5f9;">Phí khám bệnh</td>
+                                <td style="border-color:#f1f5f9;text-align:right;font-weight:600;">@String.Format("{0:N0}", phiKham)đ</td>
+                            </tr>
+                            <tr>
+                                <td style="border-color:#f1f5f9;">Dịch vụ chỉ định</td>
+                                <td style="border-color:#f1f5f9;text-align:right;font-weight:600;">@String.Format("{0:N0}", tienDichVu)đ</td>
+                            </tr>
+                            <tr>
+                                <td style="border-color:#f1f5f9;">Tiền thuốc</td>
+                                <td style="border-color:#f1f5f9;padding:4px 12px;">
+                                    <div class="input-group input-group-sm" style="justify-content:flex-end;">
+                                        <input asp-for="TienThuoc" type="number" min="0" class="form-control form-control-sm text-end" style="max-width:130px;border-radius:6px;" id="tienThuocInput" value="0" />
+                                        <span class="input-group-text" style="border-radius:0 6px 6px 0;font-size:0.8rem;">đ</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style="background:#f8fafc;">
+                            <tr>
+                                <td style="font-weight:700;font-size:1rem;border:none;">TỔNG CỘNG</td>
+                                <td style="font-weight:700;font-size:1.1rem;color:#6366f1;text-align:right;border:none;" id="totalDisplay">
+                                    @String.Format("{0:N0}", phiKham + tienDichVu)đ
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <input asp-for="TienDichVu" type="hidden" value="@(phiKham + tienDichVu)" />
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:0.85rem;">PHƯƠNG THỨC THANH TOÁN</label>
+                        <select asp-for="PhuongThucThanhToan" class="form-select" style="border-radius:8px;">
+                            <option value="TienMat">Tiền mặt</option>
+                            <option value="ChuyenKhoan">Chuyển khoản</option>
+                            <option value="TheNganHang">Thẻ ngân hàng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-light" style="border-radius:8px;">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-success" style="border-radius:8px;font-weight:600;padding:0.6rem 1.5rem;">
+                        <i class="fas fa-check-circle me-2"></i> Xác nhận Thu tiền
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    var phiKham = @phiKham;
+    var tienDichVu = @tienDichVu;
+
+    document.getElementById('tienThuocInput').addEventListener('input', function() {
+        var thuoc = parseFloat(this.value) || 0;
+        var total = phiKham + tienDichVu + thuoc;
+        document.getElementById('totalDisplay').textContent = total.toLocaleString('vi-VN') + 'đ';
+        document.querySelector('input[name="TienDichVu"]').value = phiKham + tienDichVu;
+        document.querySelector('input[name="TienThuoc"]').value = thuoc;
+    });
+</script>
+}

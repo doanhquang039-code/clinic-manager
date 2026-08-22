@@ -46,10 +46,25 @@ public class PatientController : Controller
     public async Task<IActionResult> BookAppointment()
     {
         ViewBag.Specialties = await _context.ChuyenKhoas.ToListAsync();
-        ViewBag.Doctors = await _context.NguoiDungs
+        
+        // Select the full NguoiDung entity or create a typed DTO to avoid JSON serialization issues with anonymous types
+        var docs = await _context.NguoiDungs
             .Where(n => n.Role == "BacSi" && n.TrangThai)
-            .Select(d => new { d.MaNguoiDung, d.HoTen, d.MaChuyenKhoa })
+            .Select(d => new 
+            { 
+                MaNguoiDung = d.MaNguoiDung, 
+                HoTen = d.HoTen, 
+                MaChuyenKhoa = d.MaChuyenKhoa 
+            })
             .ToListAsync();
+            
+        // Convert to a list of dicts to ensure 100% safe JSON serialization
+        ViewBag.Doctors = docs.Select(d => new Dictionary<string, object>
+        {
+            { "maNguoiDung", d.MaNguoiDung },
+            { "hoTen", d.HoTen },
+            { "maChuyenKhoa", d.MaChuyenKhoa ?? 0 }
+        }).ToList();
             
         return View();
     }
@@ -106,6 +121,7 @@ public class PatientController : Controller
         
         var records = await _context.PhieuKhams
             .Include(p => p.BacSi)
+            .ThenInclude(b => b!.ChuyenKhoa)
             .Include(p => p.LichKham)
             .Where(p => p.MaBenhNhan == patientId)
             .OrderByDescending(p => p.NgayKham)
@@ -113,4 +129,75 @@ public class PatientController : Controller
 
         return View(records);
     }
+
+    public async Task<IActionResult> RecordDetail(int id)
+    {
+        var patientId = GetCurrentPatientId();
+        var record = await _context.PhieuKhams
+            .Include(p => p.BacSi)
+            .ThenInclude(b => b!.ChuyenKhoa)
+            .Include(p => p.BenhNhan)
+            .Include(p => p.LichKham)
+            .Include(p => p.HoaDon)
+            .FirstOrDefaultAsync(p => p.MaPhieuKham == id && p.MaBenhNhan == patientId);
+
+        if (record == null)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy phiếu khám.";
+            return RedirectToAction(nameof(MedicalRecords));
+        }
+
+        return View(record);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CancelAppointment(int id)
+    {
+        var patientId = GetCurrentPatientId();
+        var appointment = await _context.LichKhams
+            .FirstOrDefaultAsync(l => l.MaLichKham == id && l.MaBenhNhan == patientId);
+
+        if (appointment == null)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy lịch khám.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (appointment.TrangThai != "ChoXacNhan")
+        {
+            TempData["ErrorMessage"] = "Chỉ có thể hủy lịch khám đang chờ xác nhận.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        appointment.TrangThai = "DaHuy";
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Đã hủy lịch khám thành công.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> Profile()
+    {
+        var patientId = GetCurrentPatientId();
+        var patient = await _context.BenhNhans.FindAsync(patientId);
+        if (patient == null) return RedirectToAction(nameof(Index));
+        return View(patient);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateProfile(BenhNhan model)
+    {
+        var patientId = GetCurrentPatientId();
+        var patient = await _context.BenhNhans.FindAsync(patientId);
+        if (patient == null) return RedirectToAction(nameof(Index));
+
+        // Chỉ cập nhật các trường cho phép
+        patient.SoDienThoai = model.SoDienThoai;
+        patient.DiaChi = model.DiaChi;
+        patient.DiUng = model.DiUng;
+
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
+        return RedirectToAction(nameof(Profile));
+    }
 }
+

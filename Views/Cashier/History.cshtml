@@ -1,0 +1,58 @@
+@model List<MyMvcApp.Models.HoaDon>
+@{
+    ViewData["Title"] = "Lịch sử Giao dịch";
+    Layout = "_PortalLayout";
+
+    var totalRevenue = Model.Sum(h => h.TongTien);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Lịch sử Giao dịch</h4>
+        <div style="color:var(--admin-text-muted);font-size:0.9rem;">@Model.Count giao dịch — Tổng doanh thu: <strong style="color:#22c55e;">@String.Format("{0:N0}", totalRevenue)đ</strong></div>
+    </div>
+</div>
+
+<div class="admin-table-container">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th style="width:10%">MÃ HD</th>
+                <th style="width:22%">BỆNH NHÂN</th>
+                <th style="width:18%">THỜI GIAN</th>
+                <th style="width:15%">TỔNG TIỀN</th>
+                <th style="width:15%">HÌNH THỨC</th>
+                <th style="width:20%">THU NGÂN</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="font-weight:700;color:#6366f1;">HD-@item.MaHoaDon.ToString("D5")</td>
+                    <td>
+                        <div style="font-weight:600;">@item.PhieuKham?.BenhNhan?.HoTen</div>
+                        <div style="font-size:0.78rem;color:#94a3b8;">@item.PhieuKham?.BenhNhan?.SoDienThoai</div>
+                    </td>
+                    <td style="font-size:0.85rem;">@item.NgayLap?.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td style="font-weight:700;font-size:1rem;color:#22c55e;">@String.Format("{0:N0}", item.TongTien)đ</td>
+                    <td>
+                        <span class="badge"
+                              style="background:@(item.PhuongThucThanhToan=="TienMat"?"#fef3c7;color:#92400e":"#ede9fe;color:#4c1d95");padding:0.4rem 0.8rem;border-radius:20px;font-size:0.75rem;">
+                            @(item.PhuongThucThanhToan == "TienMat" ? "💵 Tiền mặt" :
+                              item.PhuongThucThanhToan == "ChuyenKhoan" ? "🏦 Chuyển khoản" : "💳 Thẻ NH")
+                        </span>
+                    </td>
+                    <td style="font-size:0.85rem;color:#64748b;">@item.NguoiLap?.HoTen</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div class="p-5 text-center text-muted">
+            <i class="fas fa-history fa-3x mb-3 text-light"></i>
+            <h5>Chưa có giao dịch nào.</h5>
+        </div>
+    }
+</div>

@@ -1,0 +1,245 @@
+@model List<MyMvcApp.Models.LichKham>
+@{
+    ViewData["Title"] = "Lịch khám cả tháng";
+    Layout = "_PortalLayout";
+
+    int currentMonth = ViewBag.CurrentMonth;
+    int currentYear = ViewBag.CurrentYear;
+    DateTime startDate = ViewBag.StartDate;
+    DateTime endDate = ViewBag.EndDate;
+
+    // Tính toán số ngày trống ở đầu tháng (Thứ 2 là ngày đầu tuần)
+    int startDayOfWeek = (int)startDate.DayOfWeek;
+    if (startDayOfWeek == 0) startDayOfWeek = 7; // Chủ nhật là 7
+    int emptyDaysAtStart = startDayOfWeek - 1;
+
+    // Tổng số ngày trong tháng
+    int daysInMonth = DateTime.DaysInMonth(currentYear, currentMonth);
+}
+
+<style>
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background-color: #e2e8f0;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .calendar-header-cell {
+        background: #f8fafc;
+        padding: 10px;
+        text-align: center;
+        font-weight: 600;
+        color: #475569;
+        font-size: 0.85rem;
+    }
+    .calendar-cell {
+        background: white;
+        min-height: 120px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+    }
+    .calendar-cell.empty {
+        background: #f8fafc;
+    }
+    .calendar-cell.today {
+        background: #eff6ff;
+    }
+    .date-number {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #334155;
+        margin-bottom: 5px;
+        text-align: right;
+    }
+    .calendar-cell.today .date-number {
+        color: #4f46e5;
+        font-weight: 700;
+    }
+    .appointment-item {
+        font-size: 0.75rem;
+        padding: 4px 6px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        background: #e0e7ff;
+        color: #4338ca;
+        border-left: 3px solid #4f46e5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+    }
+    .appointment-item.cho-xac-nhan {
+        background: #fef3c7;
+        color: #b45309;
+        border-left-color: #f59e0b;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Lịch khám cả tháng</h4>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Tháng @currentMonth Năm @currentYear</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="MonthlySchedule" asp-route-month="@(currentMonth - 1)" asp-route-year="@currentYear" class="btn btn-outline-secondary" style="border-radius: 8px;">
+            <i class="fas fa-chevron-left me-1"></i> Tháng trước
+        </a>
+        <a asp-action="MonthlySchedule" asp-route-month="@DateTime.Today.Month" asp-route-year="@DateTime.Today.Year" class="btn btn-primary" style="border-radius: 8px; background-color: #4f46e5; border-color: #4f46e5;">
+            Tháng này
+        </a>
+        <a asp-action="MonthlySchedule" asp-route-month="@(currentMonth + 1)" asp-route-year="@currentYear" class="btn btn-outline-secondary" style="border-radius: 8px;">
+            Tháng sau <i class="fas fa-chevron-right ms-1"></i>
+        </a>
+    </div>
+</div>
+
+<div class="calendar-wrapper shadow-sm" style="background: white; border-radius: 12px; padding: 20px;">
+    <div class="calendar-grid">
+        <!-- Headers -->
+        <div class="calendar-header-cell">THỨ 2</div>
+        <div class="calendar-header-cell">THỨ 3</div>
+        <div class="calendar-header-cell">THỨ 4</div>
+        <div class="calendar-header-cell">THỨ 5</div>
+        <div class="calendar-header-cell">THỨ 6</div>
+        <div class="calendar-header-cell text-primary">THỨ 7</div>
+        <div class="calendar-header-cell text-danger">CHỦ NHẬT</div>
+
+        <!-- Empty cells at start of month -->
+        @for (int i = 0; i < emptyDaysAtStart; i++)
+        {
+            <div class="calendar-cell empty"></div>
+        }
+
+        <!-- Days of the month -->
+        @for (int day = 1; day <= daysInMonth; day++)
+        {
+            var currentDate = new DateTime(currentYear, currentMonth, day);
+            var isToday = currentDate.Date == DateTime.Today;
+            
+            var dayAppointments = Model.Where(a => a.NgayKham.Date == currentDate.Date).OrderBy(a => a.GioKham).ToList();
+
+            <div class="calendar-cell @(isToday ? "today" : "")">
+                <div class="date-number">@day</div>
+                <div class="appointments-list flex-grow-1">
+                    @foreach (var appt in dayAppointments)
+                    {
+                        var statusClass = appt.TrangThai == "ChoXacNhan" ? "cho-xac-nhan" : "";
+                        <div class="appointment-item @statusClass" title="@appt.GioKham.ToString(@"hh\:mm") - @appt.BenhNhan?.HoTen" data-bs-toggle="modal" data-bs-target="#modal-@appt.MaLichKham">
+                            <strong>@appt.GioKham.ToString(@"hh\:mm")</strong> @appt.BenhNhan?.HoTen
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Empty cells at end of month to complete the grid -->
+        @{
+            int totalCellsRendered = emptyDaysAtStart + daysInMonth;
+            int remainingCells = 42 - totalCellsRendered; // Luôn render đủ 6 tuần (42 ô) để grid đẹp
+            if (remainingCells > 6 && remainingCells % 7 == 0) remainingCells -= 7; // Bớt đi 1 tuần trống nếu không cần thiết
+        }
+        @for (int i = 0; i < remainingCells; i++)
+        {
+            <div class="calendar-cell empty"></div>
+        }
+    </div>
+</div>
+
+<!-- Render Modals -->
+@foreach (var appt in Model)
+{
+    <div class="modal fade" id="modal-@appt.MaLichKham" tabindex="-1" aria-labelledby="modalLabel-@appt.MaLichKham" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 12px; border: none;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title" id="modalLabel-@appt.MaLichKham" style="font-weight: 700; color: #1e293b;">
+                        Chi tiết Đơn đặt lịch
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <div class="mb-3 d-flex align-items-center gap-3">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 1.5rem;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h6 style="font-weight: 700; margin-bottom: 2px;">@appt.BenhNhan?.HoTen</h6>
+                            <div style="font-size: 0.85rem; color: #64748b;">
+                                <i class="fas fa-phone-alt me-1"></i> @appt.BenhNhan?.SoDienThoai
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-light border-0 mb-3" style="border-radius: 8px;">
+                        <div class="card-body py-2 px-3">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">NGÀY KHÁM</div>
+                                    <div style="font-weight: 600; color: #334155;">@appt.NgayKham.ToString("dd/MM/yyyy")</div>
+                                </div>
+                                <div class="col-6">
+                                    <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">GIỜ KHÁM</div>
+                                    <div style="font-weight: 600; color: #4f46e5;">@appt.GioKham.ToString(@"hh\:mm")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">LÝ DO / TRIỆU CHỨNG</div>
+                        <div class="p-2 border rounded" style="background: #f8fafc; font-size: 0.9rem; color: #334155;">
+                            @(string.IsNullOrEmpty(appt.LyDoKham) ? "Không có ghi chú" : appt.LyDoKham)
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">TRẠNG THÁI</div>
+                        @if (appt.TrangThai == "ChoXacNhan")
+                        {
+                            <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Chờ duyệt</span>
+                        }
+                        else if (appt.TrangThai == "DaXacNhan")
+                        {
+                            <span class="badge bg-primary"><i class="fas fa-check-circle me-1"></i> Đã duyệt</span>
+                        }
+                        else if (appt.TrangThai == "DaHuy")
+                        {
+                            <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Đã hủy</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i> Hoàn thành</span>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px;">Đóng</button>
+                    
+                    @if (appt.TrangThai == "ChoXacNhan")
+                    {
+                        <form asp-action="ApproveAppointment" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="@appt.MaLichKham" />
+                            <input type="hidden" name="action" value="reject" />
+                            <button type="submit" class="btn btn-outline-danger" style="border-radius:8px;">Hủy lịch</button>
+                        </form>
+                        <form asp-action="ApproveAppointment" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="@appt.MaLichKham" />
+                            <input type="hidden" name="action" value="approve" />
+                            <button type="submit" class="btn btn-success" style="border-radius:8px;">Duyệt lịch</button>
+                        </form>
+                    }
+                    else if (appt.TrangThai == "DaXacNhan")
+                    {
+                        <a asp-action="Consultation" asp-route-id="@appt.MaLichKham" class="btn btn-primary" style="border-radius: 8px;">
+                            <i class="fas fa-stethoscope me-1"></i> Bắt đầu Khám
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

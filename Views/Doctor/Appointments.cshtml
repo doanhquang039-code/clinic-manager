@@ -1,0 +1,104 @@
+@model List<MyMvcApp.Models.LichKham>
+@{
+    ViewData["Title"] = "Quản lý Lịch khám";
+    Layout = "_PortalLayout";
+    
+    var currentStatus = ViewBag.CurrentStatus as string ?? "all";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Tất cả Đơn đặt lịch</h4>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Xem và lọc các đơn đặt lịch hẹn của bệnh nhân</div>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="p-3 border-bottom d-flex gap-2">
+        <a asp-action="Appointments" asp-route-status="all" class="btn @(currentStatus == "all" ? "btn-primary" : "btn-outline-secondary")" style="border-radius: 8px;">
+            Tất cả
+        </a>
+        <a asp-action="Appointments" asp-route-status="pending" class="btn @(currentStatus == "pending" ? "btn-warning" : "btn-outline-secondary")" style="border-radius: 8px;">
+            Chờ duyệt
+        </a>
+        <a asp-action="Appointments" asp-route-status="approved" class="btn @(currentStatus == "approved" ? "btn-success" : "btn-outline-secondary")" style="border-radius: 8px;">
+            Đã duyệt
+        </a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 15%">NGÀY KHÁM</th>
+                    <th style="width: 10%">GIỜ KHÁM</th>
+                    <th style="width: 20%">BỆNH NHÂN</th>
+                    <th style="width: 15%">SỐ ĐIỆN THOẠI</th>
+                    <th style="width: 25%">LÝ DO</th>
+                    <th style="width: 15%; text-align: center;">TRẠNG THÁI</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="font-weight: 500;">@item.NgayKham.ToString("dd/MM/yyyy")</td>
+                            <td style="font-weight: 600; color: #4f46e5;">@item.GioKham.ToString(@"hh\:mm")</td>
+                            <td style="font-weight: 500;">@item.BenhNhan?.HoTen</td>
+                            <td>@item.BenhNhan?.SoDienThoai</td>
+                            <td>
+                                <span class="text-truncate d-inline-block text-muted" style="max-width: 200px;" title="@item.LyDoKham">
+                                    @(string.IsNullOrEmpty(item.LyDoKham) ? "-" : item.LyDoKham)
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                @if (item.TrangThai == "ChoXacNhan")
+                                {
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <form asp-action="ApproveAppointment" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="@item.MaLichKham" />
+                                            <input type="hidden" name="action" value="approve" />
+                                            <button type="submit" class="btn btn-sm btn-success" style="border-radius:6px;" title="Xác nhận">
+                                                <i class="fas fa-check"></i> Duyệt
+                                            </button>
+                                        </form>
+                                        <form asp-action="ApproveAppointment" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="@item.MaLichKham" />
+                                            <input type="hidden" name="action" value="reject" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:6px;" title="Hủy">
+                                                <i class="fas fa-times"></i> Hủy
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                                else if (item.TrangThai == "DaXacNhan")
+                                {
+                                    <span class="badge bg-primary" style="padding: 0.5rem 0.8rem;"><i class="fas fa-check-circle me-1"></i> Đã duyệt</span>
+                                }
+                                else if (item.TrangThai == "DaHuy")
+                                {
+                                    <span class="badge bg-danger" style="padding: 0.5rem 0.8rem;"><i class="fas fa-times-circle me-1"></i> Đã hủy</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success" style="padding: 0.5rem 0.8rem;"><i class="fas fa-check me-1"></i> Hoàn thành</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fas fa-calendar-times fa-2x mb-2" style="color: #cbd5e1;"></i>
+                            <p class="mb-0">Không có đơn đặt lịch nào thỏa mãn điều kiện lọc.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

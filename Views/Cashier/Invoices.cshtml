@@ -1,0 +1,85 @@
+@model List<MyMvcApp.Models.HoaDon>
+@{
+    ViewData["Title"] = "Quản lý Hóa đơn";
+    Layout = "_PortalLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Quản lý Hóa đơn</h4>
+        <div style="color:var(--admin-text-muted);font-size:0.9rem;">Tổng @Model.Count hóa đơn</div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" style="border-radius:8px;">@TempData["SuccessMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="admin-table-container">
+    <form method="get" class="d-flex gap-3 align-items-center p-3 border-bottom">
+        <div class="admin-search" style="flex:1;background:transparent;border:1px solid var(--admin-border);">
+            <i class="fas fa-search text-muted"></i>
+            <input type="text" name="search" value="@ViewData["CurrentSearch"]" placeholder="Tìm tên bệnh nhân..." />
+        </div>
+        <select name="status" class="form-select" style="width:200px;border:1px solid var(--admin-border);" onchange="this.form.submit()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="DaThanhToan" selected="@(ViewData["CurrentStatus"]?.ToString()=="DaThanhToan")">Đã thanh toán</option>
+            <option value="ChuaThanhToan" selected="@(ViewData["CurrentStatus"]?.ToString()=="ChuaThanhToan")">Chưa thanh toán</option>
+        </select>
+        <button type="submit" class="btn btn-light" style="border:1px solid var(--admin-border);">Lọc</button>
+        <a asp-action="Invoices" class="btn btn-link text-muted" style="text-decoration:none;">Xóa lọc</a>
+    </form>
+
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th style="width:10%">MÃ HD</th>
+                <th style="width:22%">BỆNH NHÂN</th>
+                <th style="width:13%">NGÀY LẬP</th>
+                <th style="width:10%">TIỀN DV</th>
+                <th style="width:10%">TIỀN THUỐC</th>
+                <th style="width:10%">TỔNG TIỀN</th>
+                <th style="width:10%">THANH TOÁN</th>
+                <th style="width:9%;text-align:center">TT</th>
+                <th style="width:6%;text-align:center">IN</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="font-weight:700;color:#6366f1;">HD-@item.MaHoaDon.ToString("D5")</td>
+                    <td>
+                        <div style="font-weight:600;">@item.PhieuKham?.BenhNhan?.HoTen</div>
+                        <div style="font-size:0.75rem;color:#94a3b8;">TN: @item.NguoiLap?.HoTen</div>
+                    </td>
+                    <td style="font-size:0.85rem;">@item.NgayLap?.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@String.Format("{0:N0}", item.TienDichVu)đ</td>
+                    <td>@String.Format("{0:N0}", item.TienThuoc)đ</td>
+                    <td style="font-weight:700;">@String.Format("{0:N0}", item.TongTien)đ</td>
+                    <td style="font-size:0.85rem;color:#64748b;">
+                        @(item.PhuongThucThanhToan == "TienMat" ? "Tiền mặt" :
+                          item.PhuongThucThanhToan == "ChuyenKhoan" ? "Chuyển khoản" : "Thẻ NH")
+                    </td>
+                    <td style="text-align:center;">
+                        @if (item.TrangThaiThanhToan == "DaThanhToan")
+                        {
+                            <span class="badge bg-success" style="padding:0.4rem 0.9rem;border-radius:20px;font-size:0.75rem;">Đã thu</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark" style="padding:0.4rem 0.9rem;border-radius:20px;font-size:0.75rem;">Chờ thu</span>
+                        }
+                    </td>
+                    <td style="text-align:center;">
+                        <a asp-action="PrintInvoice" asp-route-id="@item.MaHoaDon" target="_blank"
+                           class="btn btn-sm btn-outline-secondary" style="border-radius:6px;" title="In hóa đơn">
+                            <i class="fas fa-print"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

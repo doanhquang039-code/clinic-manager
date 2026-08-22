@@ -1,0 +1,63 @@
+@model List<MyMvcApp.Models.HoaDon>
+@{
+    ViewData["Title"] = "Quản lý Hóa đơn";
+    Layout = "_PortalLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Quản lý Hóa đơn</h4>
+        <div style="color:var(--admin-text-muted);font-size:0.9rem;">Tổng cộng @Model.Count hóa đơn</div>
+    </div>
+</div>
+
+<div class="admin-table-container">
+    <form method="get" class="d-flex gap-3 p-3 border-bottom align-items-center">
+        <select name="status" class="form-select" style="width:200px;border:1px solid var(--admin-border);" onchange="this.form.submit()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="DaThanhToan" selected="@(ViewData["CurrentStatus"]?.ToString()=="DaThanhToan")">Đã thanh toán</option>
+            <option value="ChuaThanhToan" selected="@(ViewData["CurrentStatus"]?.ToString()=="ChuaThanhToan")">Chưa thanh toán</option>
+        </select>
+        <a asp-action="Invoices" class="btn btn-link text-muted" style="text-decoration:none;">Xóa lọc</a>
+    </form>
+
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th style="width:10%">MÃ HD</th>
+                <th style="width:22%">BỆNH NHÂN</th>
+                <th style="width:15%">NGÀY LẬP</th>
+                <th style="width:13%">TIỀN DV</th>
+                <th style="width:13%">TIỀN THUỐC</th>
+                <th style="width:12%">TỔNG TIỀN</th>
+                <th style="width:15%; text-align:center">TRẠNG THÁI</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="font-weight:700;color:#6366f1;">HD-@item.MaHoaDon.ToString("D5")</td>
+                    <td>
+                        <div style="font-weight:600;">@item.PhieuKham?.BenhNhan?.HoTen</div>
+                        <div style="font-size:0.78rem;color:#94a3b8;">TN: @item.NguoiLap?.HoTen</div>
+                    </td>
+                    <td style="font-size:0.85rem;">@item.NgayLap?.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td style="font-weight:500;">@String.Format("{0:N0}", item.TienDichVu)đ</td>
+                    <td style="font-weight:500;">@String.Format("{0:N0}", item.TienThuoc)đ</td>
+                    <td style="font-weight:700;color:#0f172a;">@String.Format("{0:N0}", item.TongTien)đ</td>
+                    <td style="text-align:center;">
+                        @if (item.TrangThaiThanhToan == "DaThanhToan")
+                        {
+                            <span class="badge bg-success" style="padding:0.4rem 0.9rem;border-radius:20px;">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark" style="padding:0.4rem 0.9rem;border-radius:20px;">Chưa thanh toán</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
