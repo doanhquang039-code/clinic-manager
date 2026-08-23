@@ -35,6 +35,10 @@
 {
     <div class="alert alert-success alert-dismissible fade show" style="border-radius:8px;">@TempData["SuccessMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 }
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" style="border-radius:8px;">@TempData["ErrorMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
 
 <div class="admin-table-container">
     <form method="get" class="d-flex justify-content-between align-items-center p-3 border-bottom gap-3">
@@ -46,8 +50,7 @@
             <option value="">Tất cả vai trò</option>
             <option value="BacSi" selected="@(ViewData["CurrentRole"]?.ToString()=="BacSi")">Bác sĩ</option>
             <option value="ThuNgan" selected="@(ViewData["CurrentRole"]?.ToString()=="ThuNgan")">Thu ngân</option>
-            <option value="Manager" selected="@(ViewData["CurrentRole"]?.ToString()=="Manager")">Quản lý</option>
-            <option value="Admin" selected="@(ViewData["CurrentRole"]?.ToString()=="Admin")">Admin</option>
+            <option value="LeTan" selected="@(ViewData["CurrentRole"]?.ToString()=="LeTan")">Lễ tân</option>
         </select>
         <button type="submit" class="btn btn-light" style="border:1px solid var(--admin-border);">Lọc</button>
         <a asp-action="Personnel" class="btn btn-link text-muted" style="text-decoration:none;">Xóa lọc</a>
@@ -98,12 +101,14 @@
                         }
                     </td>
                     <td style="text-align:center;">
-                        <form asp-action="UpdateStaffStatus" method="post" style="display:inline;">
+                        <form asp-action="UpdateStaffStatus" method="post" style="display:inline;"
+                              onsubmit="return confirm('@(item.TrangThai ? "Bạn có chắc muốn KHÓA tài khoản" : "Bạn có chắc muốn MỞ KHÓA tài khoản") @item.HoTen?')">
                             <input type="hidden" name="id" value="@item.MaNguoiDung" />
-                            <input type="hidden" name="status" value="@(!item.TrangThai)" />
+                            <input type="hidden" name="status" value="@(!item.TrangThai ? "True" : "False")" />
                             <button type="submit" class="btn btn-sm @(item.TrangThai ? "btn-outline-danger" : "btn-outline-success")" style="border-radius:6px;"
-                                    title="@(item.TrangThai ? "Khóa tài khoản" : "Kích hoạt")">
+                                    title="@(item.TrangThai ? "Khóa tài khoản" : "Mở khóa tài khoản")">
                                 <i class="fas @(item.TrangThai ? "fa-lock" : "fa-lock-open")"></i>
+                                <span style="font-size:0.75rem; margin-left: 3px;">@(item.TrangThai ? "Khóa" : "Mở")</span>
                             </button>
                         </form>
                     </td>

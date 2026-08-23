@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers(); // For API endpoints
 
 builder.Services.AddAuthentication(options =>
 {
@@ -77,5 +78,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// API routes (Postman)
+app.MapControllers();
 
 app.Run();

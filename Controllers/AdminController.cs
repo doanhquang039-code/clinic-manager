@@ -342,4 +342,108 @@ public class AdminController : Controller
     {
         return View("ComingSoon");
     }
+
+    // ============ CHUYÊN KHOA CRUD ============
+    public async Task<IActionResult> Specialties()
+    {
+        var list = await _context.ChuyenKhoas
+            .Include(c => c.NguoiDungs)
+            .ToListAsync();
+        return View(list);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateSpecialty(string TenChuyenKhoa, string MoTa)
+    {
+        if (!string.IsNullOrWhiteSpace(TenChuyenKhoa))
+        {
+            _context.ChuyenKhoas.Add(new ChuyenKhoa { TenChuyenKhoa = TenChuyenKhoa, MoTa = MoTa });
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Thêm chuyên khoa thành công!";
+        }
+        return RedirectToAction(nameof(Specialties));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditSpecialty(int id, string TenChuyenKhoa, string MoTa)
+    {
+        var ck = await _context.ChuyenKhoas.FindAsync(id);
+        if (ck != null)
+        {
+            ck.TenChuyenKhoa = TenChuyenKhoa;
+            ck.MoTa = MoTa;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cập nhật chuyên khoa thành công!";
+        }
+        return RedirectToAction(nameof(Specialties));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteSpecialty(int id)
+    {
+        var ck = await _context.ChuyenKhoas.Include(c => c.NguoiDungs).FirstOrDefaultAsync(c => c.MaChuyenKhoa == id);
+        if (ck != null && !ck.NguoiDungs.Any())
+        {
+            _context.ChuyenKhoas.Remove(ck);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Xóa chuyên khoa thành công!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể xóa chuyên khoa đang có bác sĩ!";
+        }
+        return RedirectToAction(nameof(Specialties));
+    }
+
+    // ============ DỊCH VỤ CRUD ============
+    public async Task<IActionResult> Services()
+    {
+        var list = await _context.DichVus.ToListAsync();
+        return View(list);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateService(string TenDichVu, decimal DonGia, string MoTa)
+    {
+        if (!string.IsNullOrWhiteSpace(TenDichVu))
+        {
+            _context.DichVus.Add(new DichVu { TenDichVu = TenDichVu, DonGia = DonGia, MoTa = MoTa });
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Thêm dịch vụ thành công!";
+        }
+        return RedirectToAction(nameof(Services));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditService(int id, string TenDichVu, decimal DonGia, string MoTa)
+    {
+        var dv = await _context.DichVus.FindAsync(id);
+        if (dv != null)
+        {
+            dv.TenDichVu = TenDichVu;
+            dv.DonGia = DonGia;
+            dv.MoTa = MoTa;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cập nhật dịch vụ thành công!";
+        }
+        return RedirectToAction(nameof(Services));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteService(int id)
+    {
+        var dv = await _context.DichVus.Include(d => d.ChiTietDichVus).FirstOrDefaultAsync(d => d.MaDichVu == id);
+        if (dv != null && !dv.ChiTietDichVus.Any())
+        {
+            _context.DichVus.Remove(dv);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Xóa dịch vụ thành công!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể xóa dịch vụ đang được sử dụng trong phiếu khám!";
+        }
+        return RedirectToAction(nameof(Services));
+    }
 }
+

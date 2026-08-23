@@ -78,7 +78,45 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label" style="font-weight: 600; color: #475569;">CHẨN ĐOÁN (MÃ BỆNH) <span class="text-danger">*</span></label>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label mb-0" style="font-weight: 600; color: #475569;">CHẨN ĐOÁN (MÃ BỆNH) <span class="text-danger">*</span></label>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#templatePanel" style="border-radius: 6px; font-size: 0.8rem;">
+                            <i class="fas fa-bolt me-1"></i> Template nhanh
+                        </button>
+                    </div>
+                    
+                    <!-- Template Panel -->
+                    <div class="collapse mb-2" id="templatePanel">
+                        <div class="p-3 border rounded" style="background: #f8fafc; border-radius: 8px !important;">
+                            <div style="font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Chọn chẩn đoán thường gặp</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                @{
+                                    var templates = new[]
+                                    {
+                                        new { Label = "Viêm họng cấp", Code = "J02.9", Symptom = "Đau họng, nuốt đau, sốt nhẹ", Advice = "Nghỉ ngơi, uống nhiều nước ấm, tránh thức ăn cứng và cay." },
+                                        new { Label = "Cảm cúm", Code = "J11", Symptom = "Sổ mũi, hắt hơi, đau đầu, sốt", Advice = "Nghỉ ngơi tại nhà, uống nhiều nước, hạ sốt khi cần." },
+                                        new { Label = "Viêm dạ dày", Code = "K29.7", Symptom = "Đau bụng thượng vị, buồn nôn, ợ chua", Advice = "Ăn nhẹ, tránh rượu bia, cà phê, thức ăn cay nóng. Ăn đúng giờ." },
+                                        new { Label = "Cao huyết áp", Code = "I10", Symptom = "Đau đầu, chóng mặt, huyết áp tăng cao", Advice = "Hạn chế muối, stress, nghỉ ngơi đầy đủ, tái khám định kỳ." },
+                                        new { Label = "Đái tháo đường T2", Code = "E11", Symptom = "Khát nước nhiều, tiểu nhiều, mệt mỏi", Advice = "Kiểm soát chế độ ăn, luyện tập thể dục đều đặn, theo dõi đường huyết." },
+                                        new { Label = "Viêm phế quản", Code = "J40", Symptom = "Ho nhiều, có đờm, tức ngực", Advice = "Nghỉ ngơi, tránh khói bụi, giữ ấm vùng ngực." },
+                                        new { Label = "Đau lưng cơ học", Code = "M54.5", Symptom = "Đau vùng thắt lưng, khó cúi", Advice = "Chườm ấm, tránh mang vác nặng, ngủ nệm cứng." },
+                                        new { Label = "Rối loạn lo âu", Code = "F41.1", Symptom = "Lo lắng quá mức, hồi hộp, mất ngủ", Advice = "Giảm căng thẳng, thở sâu, tập thể dục nhẹ. Tái khám nếu không cải thiện." },
+                                    };
+                                    foreach (var t in templates)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-light template-btn"
+                                            style="border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.78rem; padding: 4px 10px;"
+                                            data-chandoan="@t.Label (@t.Code)"
+                                            data-trieuchung="@t.Symptom"
+                                            data-loidan="@t.Advice">
+                                            @t.Label
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
                     <input asp-for="ChanDoan" type="text" class="form-control" style="border-radius: 8px; padding: 0.6rem 1rem;" required placeholder="Ví dụ: Viêm họng cấp (J02.9)" />
                     <span asp-validation-for="ChanDoan" class="text-danger"></span>
                 </div>
@@ -98,7 +136,7 @@
                 
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="text-muted" style="font-size: 0.85rem;">
-                        <i class="fas fa-info-circle me-1"></i> Tính năng Kê đơn thuốc sẽ được cập nhật ở phiên bản sau.
+                        <i class="fas fa-info-circle me-1"></i> Dùng Template nhanh để điền tự động các trường chẩn đoán.
                     </div>
                     <button type="submit" class="btn btn-primary" style="background: var(--admin-sidebar-bg); border: none; border-radius: 8px; font-weight: 600; padding: 0.6rem 1.5rem;">
                         <i class="fas fa-save me-2"></i> Lưu & Hoàn tất Khám
@@ -108,3 +146,32 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.template-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        // Fill in the fields
+        var chanDoan = this.getAttribute('data-chandoan');
+        var trieuChung = this.getAttribute('data-trieuchung');
+        var loiDan = this.getAttribute('data-loidan');
+
+        document.getElementById('ChanDoan').value = chanDoan;
+        if (document.getElementById('TrieuChung').value === '')
+            document.getElementById('TrieuChung').value = trieuChung;
+        if (document.getElementById('LoiDan').value === '')
+            document.getElementById('LoiDan').value = loiDan;
+
+        // Visual feedback
+        document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('btn-primary', 'active'));
+        this.classList.add('btn-primary');
+        this.classList.remove('btn-light');
+
+        // Auto-close template panel
+        var collapseEl = document.getElementById('templatePanel');
+        bootstrap.Collapse.getOrCreateInstance(collapseEl).hide();
+    });
+});
+</script>
+}
+

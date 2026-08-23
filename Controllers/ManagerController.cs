@@ -73,14 +73,19 @@ public class ManagerController : Controller
         ViewData["CurrentSearch"] = search;
         ViewData["CurrentRole"] = roleFilter;
 
+        // Manager chỉ được quản lý các role cấp dưới (BacSi, ThuNgan, LeTan)
+        // Không hiển thị Admin và Manager khác
+        var allowedRoles = new[] { "BacSi", "ThuNgan", "LeTan" };
+
         var query = _context.NguoiDungs
             .Include(n => n.ChuyenKhoa)
+            .Where(n => allowedRoles.Contains(n.Role))
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(search))
             query = query.Where(n => n.HoTen.Contains(search) || n.Email.Contains(search) || n.SoDienThoai.Contains(search));
 
-        if (!string.IsNullOrEmpty(roleFilter))
+        if (!string.IsNullOrEmpty(roleFilter) && allowedRoles.Contains(roleFilter))
             query = query.Where(n => n.Role == roleFilter);
 
         var staff = await query.OrderBy(n => n.Role).ThenBy(n => n.HoTen).ToListAsync();
@@ -110,12 +115,18 @@ public class ManagerController : Controller
     [HttpPost]
     public async Task<IActionResult> UpdateStaffStatus(int id, bool status)
     {
+        // Chỉ cho phép Manager thảo tác trên các role cấp dưới
+        var allowedRoles = new[] { "BacSi", "ThuNgan", "LeTan" };
         var staff = await _context.NguoiDungs.FindAsync(id);
-        if (staff != null)
+        if (staff != null && allowedRoles.Contains(staff.Role))
         {
             staff.TrangThai = status;
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Đã {(status ? "kích hoạt" : "khóa")} tài khoản {staff.HoTen}.";
+        }
+        else if (staff != null && !allowedRoles.Contains(staff.Role))
+        {
+            TempData["ErrorMessage"] = "Bạn không có quyền thảo tác với tài khoản này!";
         }
         return RedirectToAction(nameof(Personnel));
     }
@@ -232,4 +243,103 @@ public class ManagerController : Controller
         }
         return RedirectToAction(nameof(Schedules));
     }
+
+    // ============ QUẢN LÝ KHO DƯỢC ============
+    public async Task<IActionResult> DrugStock(string search, string statusFilter)
+    {
+        ViewBag.CurrentSearch = search;
+        ViewBag.CurrentStatus = statusFilter;
+
+        var query = _context.Thuocs.AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+            query = query.Where(t => t.TenThuoc.Contains(search));
+
+        if (statusFilter == "low")
+            query = query.Where(t => t.SoLuongTon < 20);
+        else if (statusFilter == "expired")
+            query = query.Where(t => t.HanSuDung.HasValue && t.HanSuDung.Value.Date < DateTime.Today);
+        else if (statusFilter == "outofstock")
+            query = query.Where(t => t.TrangThai == "HetHang");
+
+        var list = await query.OrderBy(t => t.TenThuoc).ToListAsync();
+        
+        ViewBag.TotalItems = await _context.Thuocs.CountAsync();
+        ViewBag.LowStockCount = await _context.Thuocs.CountAsync(t => t.SoLuongTon < 20 && t.SoLuongTon > 0);
+        ViewBag.OutOfStockCount = await _context.Thuocs.CountAsync(t => t.SoLuongTon == 0);
+        ViewBag.NearExpiredCount = await _context.Thuocs.CountAsync(t => t.HanSuDung.HasValue && t.HanSuDung.Value.Date <= DateTime.Today.AddDays(30) && t.HanSuDung.Value.Date >= DateTime.Today);
+
+        return View(list);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateDrug(string TenThuoc, string DonViTinh, decimal DonGia, int SoLuongTon, DateTime? HanSuDung)
+    {
+        if (!string.IsNullOrWhiteSpace(TenThuoc))
+        {
+            var thuoc = new Thuoc
+            {
+                TenThuoc = TenThuoc,
+                DonViTinh = DonViTinh ?? "Viên",
+                DonGia = DonGia,
+                SoLuongTon = SoLuongTon,
+                HanSuDung = HanSuDung,
+                TrangThai = SoLuongTon > 0 ? "ConHang" : "HetHang"
+            };
+            _context.Thuocs.Add(thuoc);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Thêm thuốc vào kho thành công!";
+        }
+        return RedirectToAction(nameof(DrugStock));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditDrug(int id, string TenThuoc, string DonViTinh, decimal DonGia, int SoLuongTon, DateTime? HanSuDung)
+    {
+        var thuoc = await _context.Thuocs.FindAsync(id);
+        if (thuoc != null)
+        {
+            thuoc.TenThuoc = TenThuoc;
+            thuoc.DonViTinh = DonViTinh;
+            thuoc.DonGia = DonGia;
+            thuoc.SoLuongTon = SoLuongTon;
+            thuoc.HanSuDung = HanSuDung;
+            thuoc.TrangThai = SoLuongTon > 0 ? "ConHang" : "HetHang";
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cập nhật thuốc thành công!";
+        }
+        return RedirectToAction(nameof(DrugStock));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteDrug(int id)
+    {
+        var thuoc = await _context.Thuocs.Include(t => t.ChiTietDonThuocs).FirstOrDefaultAsync(t => t.MaThuoc == id);
+        if (thuoc != null && !thuoc.ChiTietDonThuocs.Any())
+        {
+            _context.Thuocs.Remove(thuoc);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Xóa thuốc thành công!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể xóa thuốc đã được kê trong đơn thuốc!";
+        }
+        return RedirectToAction(nameof(DrugStock));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RestockDrug(int id, int SoLuongNhap)
+    {
+        var thuoc = await _context.Thuocs.FindAsync(id);
+        if (thuoc != null && SoLuongNhap > 0)
+        {
+            thuoc.SoLuongTon += SoLuongNhap;
+            thuoc.TrangThai = "ConHang";
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = $"Đã nhập {SoLuongNhap} {thuoc.DonViTinh} thuốc {thuoc.TenThuoc} vào kho!";
+        }
+        return RedirectToAction(nameof(DrugStock));
+    }
 }
+

@@ -199,5 +199,24 @@ public class PatientController : Controller
         TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
         return RedirectToAction(nameof(Profile));
     }
+
+    // ============ ĐÁNH GIÁ BÁC SĨ ============
+    [HttpPost]
+    public async Task<IActionResult> RateDoctor(int phieuKhamId, int rating, string review)
+    {
+        var patientId = GetCurrentPatientId();
+        var record = await _context.PhieuKhams
+            .FirstOrDefaultAsync(p => p.MaPhieuKham == phieuKhamId && p.MaBenhNhan == patientId);
+
+        if (record != null && rating >= 1 && rating <= 5)
+        {
+            record.DanhGia = rating;
+            record.NhanXet = review;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = $"Cảm ơn bạn đã đánh giá {rating}★! Phản hồi của bạn giúp chúng tôi cải thiện chất lượng dịch vụ.";
+        }
+
+        return RedirectToAction(nameof(MedicalRecords));
+    }
 }
 

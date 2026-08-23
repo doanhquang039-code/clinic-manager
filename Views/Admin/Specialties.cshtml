@@ -1,0 +1,181 @@
+@model List<MyMvcApp.Models.ChuyenKhoa>
+@{
+    ViewData["Title"] = "Quản lý Chuyên khoa";
+    Layout = "_PortalLayout";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Quản lý Chuyên khoa</h4>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Thêm, sửa, xóa các chuyên khoa trong hệ thống</div>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal" style="border-radius: 8px; background-color: #4f46e5; border-color: #4f46e5;">
+        <i class="fas fa-plus me-2"></i> Thêm Chuyên khoa
+    </button>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="admin-card p-4 text-center">
+            <div style="font-size: 2rem; font-weight: 700; color: #4f46e5;">@Model.Count</div>
+            <div style="color: #64748b;">Tổng chuyên khoa</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="admin-card p-4 text-center">
+            <div style="font-size: 2rem; font-weight: 700; color: #10b981;">@Model.Sum(c => c.NguoiDungs.Count(n => n.Role == "BacSi"))</div>
+            <div style="color: #64748b;">Tổng bác sĩ</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="admin-card p-4 text-center">
+            <div style="font-size: 2rem; font-weight: 700; color: #f59e0b;">@Model.Count(c => c.NguoiDungs.Any(n => n.Role == "BacSi"))</div>
+            <div style="color: #64748b;">Chuyên khoa đang hoạt động</div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 25%">TÊN CHUYÊN KHOA</th>
+                    <th style="width: 40%">MÔ TẢ</th>
+                    <th style="width: 15%; text-align: center;">SỐ BÁC SĨ</th>
+                    <th style="width: 15%; text-align: center;">THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ck in Model)
+                {
+                    var docCount = ck.NguoiDungs.Count(n => n.Role == "BacSi");
+                    <tr>
+                        <td style="color: #94a3b8; font-weight: 600;">@ck.MaChuyenKhoa</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem;">
+                                    <i class="fas fa-stethoscope"></i>
+                                </div>
+                                <span style="font-weight: 600;">@ck.TenChuyenKhoa</span>
+                            </div>
+                        </td>
+                        <td style="color: #64748b; font-size: 0.9rem;">@(ck.MoTa ?? "-")</td>
+                        <td style="text-align: center;">
+                            <span class="badge @(docCount > 0 ? "bg-primary" : "bg-secondary")" style="padding: 0.4rem 0.75rem;">
+                                @docCount bác sĩ
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <button class="btn btn-sm btn-outline-primary" style="border-radius: 6px;"
+                                    onclick="openEditModal(@ck.MaChuyenKhoa, '@ck.TenChuyenKhoa', '@(ck.MoTa ?? "")')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                @if (docCount == 0)
+                                {
+                                    <form asp-action="DeleteSpecialty" method="post" onsubmit="return confirm('Xóa chuyên khoa @ck.TenChuyenKhoa?')">
+                                        <input type="hidden" name="id" value="@ck.MaChuyenKhoa" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary disabled" style="border-radius: 6px;" title="Không thể xóa vì có bác sĩ thuộc chuyên khoa này">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Thêm -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title" style="font-weight: 700;">Thêm Chuyên khoa mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CreateSpecialty" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên Chuyên khoa <span class="text-danger">*</span></label>
+                        <input type="text" name="TenChuyenKhoa" class="form-control" placeholder="Vd: Khoa Tim mạch" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả</label>
+                        <textarea name="MoTa" class="form-control" rows="3" placeholder="Mô tả ngắn về chuyên khoa..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 8px; background-color: #4f46e5; border-color: #4f46e5;">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title" style="font-weight: 700;">Chỉnh sửa Chuyên khoa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditSpecialty" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="edit-id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên Chuyên khoa <span class="text-danger">*</span></label>
+                        <input type="text" name="TenChuyenKhoa" id="edit-ten" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả</label>
+                        <textarea name="MoTa" id="edit-mota" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 8px; background-color: #4f46e5; border-color: #4f46e5;">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function openEditModal(id, ten, mota) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-ten').value = ten;
+    document.getElementById('edit-mota').value = mota;
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+</script>
+}

@@ -32,6 +32,12 @@ public class PhieuKham
     [StringLength(255)]
     public string? GhiChu { get; set; }
 
+    // Đánh giá của bệnh nhân
+    public int? DanhGia { get; set; }  // 1-5 sao
+
+    [StringLength(500)]
+    public string? NhanXet { get; set; }
+
     // Navigation properties
     [ForeignKey("MaLichKham")]
     public virtual LichKham? LichKham { get; set; }

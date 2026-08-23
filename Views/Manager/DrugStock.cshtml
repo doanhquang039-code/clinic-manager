@@ -1,0 +1,328 @@
+@model List<MyMvcApp.Models.Thuoc>
+@{
+    ViewData["Title"] = "Quản lý Kho Dược";
+    Layout = "_PortalLayout";
+    
+    string currentSearch = ViewBag.CurrentSearch ?? "";
+    string currentStatus = ViewBag.CurrentStatus ?? "";
+    int totalItems = ViewBag.TotalItems ?? 0;
+    int lowStockCount = ViewBag.LowStockCount ?? 0;
+    int outOfStockCount = ViewBag.OutOfStockCount ?? 0;
+    int nearExpiredCount = ViewBag.NearExpiredCount ?? 0;
+}
+
+<style>
+.stock-badge-low { background: #fef3c7; color: #b45309; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 600; }
+.stock-badge-ok { background: #dcfce7; color: #15803d; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 600; }
+.stock-badge-out { background: #fee2e2; color: #b91c1c; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 600; }
+</style>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Quản lý Kho Dược</h4>
+        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Theo dõi tồn kho, nhập hàng và hạn sử dụng thuốc</div>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal" style="border-radius: 8px; background-color: #4f46e5; border-color: #4f46e5;">
+        <i class="fas fa-plus me-2"></i> Nhập thuốc mới
+    </button>
+</div>
+
+<!-- Stats cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card p-3 d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-size:1.3rem;flex-shrink:0;">
+                <i class="fas fa-pills"></i>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b; line-height: 1;">@totalItems</div>
+                <div style="font-size: 0.8rem; color: #64748b;">Tổng loại thuốc</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-3 d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:white;font-size:1.3rem;flex-shrink:0;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #b45309; line-height: 1;">@lowStockCount</div>
+                <div style="font-size: 0.8rem; color: #64748b;">Sắp hết hàng (&lt;20)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-3 d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;color:white;font-size:1.3rem;flex-shrink:0;">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #b91c1c; line-height: 1;">@outOfStockCount</div>
+                <div style="font-size: 0.8rem; color: #64748b;">Hết hàng</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card p-3 d-flex align-items-center gap-3">
+            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#ec4899,#be185d);display:flex;align-items:center;justify-content:center;color:white;font-size:1.3rem;flex-shrink:0;">
+                <i class="fas fa-calendar-times"></i>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #be185d; line-height: 1;">@nearExpiredCount</div>
+                <div style="font-size: 0.8rem; color: #64748b;">Sắp hết hạn (30 ngày)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter bar -->
+<div class="admin-card mb-3">
+    <form asp-action="DrugStock" method="get" class="p-3 d-flex gap-2 align-items-center flex-wrap">
+        <input type="text" name="search" value="@currentSearch" class="form-control" placeholder="Tìm tên thuốc..." style="max-width: 250px; border-radius: 8px;" />
+        <select name="statusFilter" class="form-select" style="max-width: 180px; border-radius: 8px;">
+            <option value="" selected="@(currentStatus == "" ? "selected" : null)">Tất cả trạng thái</option>
+            <option value="low" selected="@(currentStatus == "low" ? "selected" : null)">Sắp hết hàng</option>
+            <option value="outofstock" selected="@(currentStatus == "outofstock" ? "selected" : null)">Hết hàng</option>
+            <option value="expired" selected="@(currentStatus == "expired" ? "selected" : null)">Đã hết hạn</option>
+        </select>
+        <button type="submit" class="btn btn-outline-secondary" style="border-radius: 8px;"><i class="fas fa-search me-1"></i> Lọc</button>
+        <a asp-action="DrugStock" class="btn btn-outline-secondary" style="border-radius: 8px;">Reset</a>
+    </form>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>TÊN THUỐC</th>
+                    <th>ĐƠN VỊ</th>
+                    <th style="text-align:right">ĐƠN GIÁ</th>
+                    <th style="text-align:center">TỒN KHO</th>
+                    <th style="text-align:center">HẠN SỬ DỤNG</th>
+                    <th style="text-align:center">TRẠNG THÁI</th>
+                    <th style="text-align:center">THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    @foreach (var t in Model)
+                    {
+                        var isNearExpired = t.HanSuDung.HasValue && t.HanSuDung.Value.Date <= DateTime.Today.AddDays(30) && t.HanSuDung.Value.Date >= DateTime.Today;
+                        var isExpired = t.HanSuDung.HasValue && t.HanSuDung.Value.Date < DateTime.Today;
+                        <tr class="@(isExpired ? "table-danger" : isNearExpired ? "table-warning" : "")">
+                            <td style="color: #94a3b8; font-weight: 600;">@t.MaThuoc</td>
+                            <td style="font-weight: 600;">@t.TenThuoc</td>
+                            <td style="color: #64748b;">@t.DonViTinh</td>
+                            <td style="text-align:right; font-weight:600; color:#4f46e5;">@t.DonGia.ToString("N0")₫</td>
+                            <td style="text-align:center;">
+                                @if (t.SoLuongTon == 0)
+                                {
+                                    <span class="stock-badge-out">Hết hàng</span>
+                                }
+                                else if (t.SoLuongTon < 20)
+                                {
+                                    <span class="stock-badge-low"><i class="fas fa-exclamation-triangle me-1"></i>@t.SoLuongTon</span>
+                                }
+                                else
+                                {
+                                    <span class="stock-badge-ok">@t.SoLuongTon</span>
+                                }
+                            </td>
+                            <td style="text-align:center; font-size:0.85rem;">
+                                @if (t.HanSuDung.HasValue)
+                                {
+                                    <span class="@(isExpired ? "text-danger fw-bold" : isNearExpired ? "text-warning fw-bold" : "")">
+                                        @t.HanSuDung.Value.ToString("dd/MM/yyyy")
+                                        @if (isExpired) { <span>⚠️</span> }
+                                    </span>
+                                }
+                                else { <span class="text-muted">-</span> }
+                            </td>
+                            <td style="text-align:center;">
+                                @if (t.TrangThai == "ConHang")
+                                {
+                                    <span class="badge bg-success">Còn hàng</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Hết hàng</span>
+                                }
+                            </td>
+                            <td style="text-align:center;">
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <button class="btn btn-sm btn-outline-success" style="border-radius:6px;" title="Nhập thêm hàng"
+                                        onclick="openRestockModal(@t.MaThuoc, '@t.TenThuoc', '@t.DonViTinh')">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" style="border-radius:6px;" title="Chỉnh sửa"
+                                        onclick="openEditModal(@t.MaThuoc, '@t.TenThuoc', '@t.DonViTinh', @t.DonGia, @t.SoLuongTon, '@(t.HanSuDung?.ToString("yyyy-MM-dd") ?? "")')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form asp-action="DeleteDrug" method="post" onsubmit="return confirm('Xóa thuốc @t.TenThuoc?')">
+                                        <input type="hidden" name="id" value="@t.MaThuoc" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:6px;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="8" class="text-center py-4 text-muted">Không có dữ liệu thuốc.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Thêm thuốc mới -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px;border:none;">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title" style="font-weight:700;">Nhập thuốc mới vào kho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CreateDrug" asp-controller="Manager" method="post">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-8">
+                            <label class="form-label fw-semibold">Tên thuốc <span class="text-danger">*</span></label>
+                            <input type="text" name="TenThuoc" class="form-control" required />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold">Đơn vị</label>
+                            <input type="text" name="DonViTinh" class="form-control" value="Viên" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Đơn giá (₫) <span class="text-danger">*</span></label>
+                            <input type="number" name="DonGia" class="form-control" min="0" step="1000" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Số lượng tồn <span class="text-danger">*</span></label>
+                            <input type="number" name="SoLuongTon" class="form-control" min="0" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Hạn sử dụng</label>
+                            <input type="date" name="HanSuDung" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:8px;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius:8px;background-color:#4f46e5;border-color:#4f46e5;">Thêm vào kho</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:12px;border:none;">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title" style="font-weight:700;">Chỉnh sửa thông tin thuốc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditDrug" asp-controller="Manager" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="edit-id" />
+                    <div class="row g-3">
+                        <div class="col-8">
+                            <label class="form-label fw-semibold">Tên thuốc <span class="text-danger">*</span></label>
+                            <input type="text" name="TenThuoc" id="edit-ten" class="form-control" required />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-semibold">Đơn vị</label>
+                            <input type="text" name="DonViTinh" id="edit-dvt" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Đơn giá (₫) <span class="text-danger">*</span></label>
+                            <input type="number" name="DonGia" id="edit-dongia" class="form-control" min="0" step="1000" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Số lượng tồn <span class="text-danger">*</span></label>
+                            <input type="number" name="SoLuongTon" id="edit-soluong" class="form-control" min="0" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Hạn sử dụng</label>
+                            <input type="date" name="HanSuDung" id="edit-hsd" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:8px;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius:8px;background-color:#4f46e5;border-color:#4f46e5;">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nhập thêm (Restock) -->
+<div class="modal fade" id="restockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius:12px;border:none;">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title" style="font-weight:700;">Nhập thêm hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="RestockDrug" asp-controller="Manager" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="restock-id" />
+                    <p>Thuốc: <strong id="restock-name"></strong></p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Số lượng nhập thêm (<span id="restock-dvt"></span>)</label>
+                        <input type="number" name="SoLuongNhap" class="form-control" min="1" value="10" required />
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:8px;">Hủy</button>
+                    <button type="submit" class="btn btn-success" style="border-radius:8px;">Nhập kho</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function openEditModal(id, ten, dvt, dongia, soluong, hsd) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-ten').value = ten;
+    document.getElementById('edit-dvt').value = dvt;
+    document.getElementById('edit-dongia').value = dongia;
+    document.getElementById('edit-soluong').value = soluong;
+    document.getElementById('edit-hsd').value = hsd;
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+function openRestockModal(id, name, dvt) {
+    document.getElementById('restock-id').value = id;
+    document.getElementById('restock-name').textContent = name;
+    document.getElementById('restock-dvt').textContent = dvt;
+    new bootstrap.Modal(document.getElementById('restockModal')).show();
+}
+</script>
+}

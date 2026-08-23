@@ -39,8 +39,11 @@
                 <a asp-controller="Admin" asp-action="Accounts" class="admin-nav-item @(currentRoute == "Accounts" ? "active" : "")">
                     <i class="fas fa-user-shield"></i> Quản lý tài khoản
                 </a>
-                <a asp-controller="Admin" asp-action="Roles" class="admin-nav-item @(currentRoute == "Roles" ? "active" : "")">
-                    <i class="fas fa-key"></i> Phân quyền
+                <a asp-controller="Admin" asp-action="Specialties" class="admin-nav-item @(currentRoute == "Specialties" ? "active" : "")">
+                    <i class="fas fa-stethoscope"></i> Quản lý Chuyên khoa
+                </a>
+                <a asp-controller="Admin" asp-action="Services" class="admin-nav-item @(currentRoute == "Services" ? "active" : "")">
+                    <i class="fas fa-concierge-bell"></i> Quản lý Dịch vụ
                 </a>
                 <a asp-controller="Admin" asp-action="Logs" class="admin-nav-item @(currentRoute == "Logs" ? "active" : "")">
                     <i class="fas fa-clipboard-list"></i> Nhật ký hệ thống
@@ -59,6 +62,9 @@
                 </a>
                 <a asp-controller="Manager" asp-action="Patients" class="admin-nav-item @(currentRoute == "Patients" ? "active" : "")">
                     <i class="fas fa-procedures"></i> Quản lý Bệnh nhân
+                </a>
+                <a asp-controller="Manager" asp-action="DrugStock" class="admin-nav-item @(currentRoute == "DrugStock" ? "active" : "")">
+                    <i class="fas fa-pills"></i> Kho Dược
                 </a>
                 <a asp-controller="Manager" asp-action="Invoices" class="admin-nav-item @(currentRoute == "Invoices" ? "active" : "")">
                     <i class="fas fa-file-invoice-dollar"></i> Hóa đơn

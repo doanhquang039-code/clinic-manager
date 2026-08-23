@@ -54,9 +54,25 @@
                             </span>
                         </td>
                         <td style="text-align: center;">
-                            <a asp-action="RecordDetail" asp-route-id="@item.MaPhieuKham" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">
-                                <i class="fas fa-eye me-1"></i> Xem
-                            </a>
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a asp-action="RecordDetail" asp-route-id="@item.MaPhieuKham" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">
+                                    <i class="fas fa-eye me-1"></i> Xem
+                                </a>
+                                @if (item.DanhGia == null)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-warning" style="border-radius: 6px;"
+                                        onclick="openRateModal(@item.MaPhieuKham, '@item.BacSi?.HoTen')"
+                                        title="Đánh giá bác sĩ">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="btn btn-sm btn-warning disabled" style="border-radius: 6px; opacity: 1;" title="Đã đánh giá @item.DanhGia sao">
+                                        @for (int s = 1; s <= item.DanhGia; s++) { <text>★</text> }
+                                    </span>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
@@ -72,3 +88,75 @@
         </div>
     }
 </div>
+
+<!-- Rating Modal -->
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+            <div class="modal-header border-bottom-0 text-center d-block pt-4">
+                <h5 class="modal-title" style="font-weight: 700;">Đánh giá bác sĩ</h5>
+                <div style="font-size: 0.85rem; color: #64748b;" id="rateDocName"></div>
+            </div>
+            <form asp-action="RateDoctor" method="post">
+                <div class="modal-body text-center pb-0">
+                    <input type="hidden" name="phieuKhamId" id="rate-phieuKhamId" />
+                    
+                    <div class="star-rating d-flex justify-content-center gap-2 mb-4" style="font-size: 2.5rem;">
+                        @for (int i = 5; i >= 1; i--)
+                        {
+                            <input type="radio" name="rating" id="star@(i)" value="@i" style="display:none;" />
+                            <label for="star@(i)" style="cursor:pointer; color: #e2e8f0; transition: color 0.15s;" data-value="@i">★</label>
+                        }
+                    </div>
+                    
+                    <div class="mb-3 text-start">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">Nhận xét (tuỳ chọn)</label>
+                        <textarea name="review" class="form-control" rows="3" placeholder="Chia sẻ cảm nhận của bạn về bác sĩ..." style="border-radius: 8px;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pb-4 justify-content-center">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px;">Bỏ qua</button>
+                    <button type="submit" class="btn btn-warning" style="border-radius: 8px; font-weight: 600;">
+                        <i class="fas fa-paper-plane me-1"></i> Gửi đánh giá
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function openRateModal(phieuKhamId, docName) {
+    document.getElementById('rate-phieuKhamId').value = phieuKhamId;
+    document.getElementById('rateDocName').textContent = docName;
+    new bootstrap.Modal(document.getElementById('ratingModal')).show();
+}
+
+// Star rating interactive
+const labels = document.querySelectorAll('.star-rating label');
+labels.forEach(function(label) {
+    label.addEventListener('mouseover', function() {
+        var val = parseInt(this.getAttribute('data-value'));
+        labels.forEach(function(l) {
+            l.style.color = parseInt(l.getAttribute('data-value')) <= val ? '#f59e0b' : '#e2e8f0';
+        });
+    });
+    label.addEventListener('click', function() {
+        var val = parseInt(this.getAttribute('data-value'));
+        document.getElementById('star' + val).checked = true;
+        labels.forEach(function(l) {
+            l.style.color = parseInt(l.getAttribute('data-value')) <= val ? '#f59e0b' : '#e2e8f0';
+        });
+    });
+});
+
+document.querySelector('.star-rating').addEventListener('mouseleave', function() {
+    var checked = document.querySelector('.star-rating input:checked');
+    var val = checked ? parseInt(checked.value) : 0;
+    labels.forEach(function(l) {
+        l.style.color = parseInt(l.getAttribute('data-value')) <= val ? '#f59e0b' : '#e2e8f0';
+    });
+});
+</script>
+}
