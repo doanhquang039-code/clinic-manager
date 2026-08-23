@@ -1,0 +1,147 @@
+@model MyMvcApp.Models.HoaDon
+@{
+    ViewData["Title"] = "Chi tiết Hóa đơn & Đơn thuốc";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+    var phieuKham = Model.PhieuKham;
+    var listThuoc = phieuKham?.ChiTietDonThuocs ?? new List<MyMvcApp.Models.ChiTietDonThuoc>();
+    var listDichVu = phieuKham?.ChiTietDichVus ?? new List<MyMvcApp.Models.ChiTietDichVu>();
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-3 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0 text-primary"><i class="fas fa-receipt me-2"></i> Chi tiết Hóa đơn #HD-@Model.MaHoaDon.ToString("D5")</h4>
+                    <a asp-action="Invoices" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="fas fa-arrow-left me-1"></i> Trở lại
+                    </a>
+                </div>
+                
+                <div class="card-body px-4 pb-5">
+                    <!-- Thông tin chung -->
+                    <div class="row mb-4 bg-light rounded-3 p-3 mx-0">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <p class="mb-1 text-muted small">Ngày lập hóa đơn</p>
+                            <h6 class="fw-bold mb-0">@Model.NgayLap?.ToString("dd/MM/yyyy HH:mm")</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted small">Bác sĩ khám</p>
+                            <h6 class="fw-bold mb-0">@(phieuKham?.BacSi?.HoTen ?? "N/A")</h6>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(phieuKham?.ChanDoan))
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-2">Chẩn đoán của Bác sĩ:</h6>
+                            <div class="p-3 border rounded-3 bg-white">
+                                @phieuKham.ChanDoan
+                                @if (!string.IsNullOrEmpty(phieuKham.LoiDan))
+                                {
+                                    <hr class="my-2" />
+                                    <strong class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Lời dặn:</strong> @phieuKham.LoiDan
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Chi tiết Dịch vụ -->
+                    <h5 class="fw-bold mt-4 mb-3 border-bottom pb-2"><i class="fas fa-stethoscope me-2"></i> Chi tiết Dịch vụ KCB</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tên dịch vụ</th>
+                                    <th class="text-center" width="100">Số lượng</th>
+                                    <th class="text-end" width="150">Đơn giá</th>
+                                    <th class="text-end" width="150">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var dv in listDichVu)
+                                {
+                                    <tr>
+                                        <td>@(dv.DichVu?.TenDichVu)</td>
+                                        <td class="text-center">@dv.SoLuong</td>
+                                        <td class="text-end">@dv.DonGia.ToString("N0") đ</td>
+                                        <td class="text-end fw-medium">@((dv.SoLuong * dv.DonGia).ToString("N0")) đ</td>
+                                    </tr>
+                                }
+                                @if (!listDichVu.Any())
+                                {
+                                    <tr><td colspan="4" class="text-center text-muted">Không có dịch vụ nào</td></tr>
+                                }
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold">Tổng tiền Dịch vụ:</td>
+                                    <td class="text-end fw-bold text-primary">@Model.TienDichVu.ToString("N0") đ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Chi tiết Đơn thuốc -->
+                    <h5 class="fw-bold mt-4 mb-3 border-bottom pb-2"><i class="fas fa-pills me-2"></i> Chi tiết Đơn thuốc</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tên thuốc</th>
+                                    <th>Cách dùng</th>
+                                    <th class="text-center" width="100">Số lượng</th>
+                                    <th class="text-end" width="150">Đơn giá</th>
+                                    <th class="text-end" width="150">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var t in listThuoc)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@(t.Thuoc?.TenThuoc)</strong><br />
+                                            <span class="text-muted small">@t.LieuDung</span>
+                                        </td>
+                                        <td>@t.CachDung</td>
+                                        <td class="text-center">@t.SoLuong @(t.Thuoc?.DonViTinh)</td>
+                                        <td class="text-end">@t.DonGia.ToString("N0") đ</td>
+                                        <td class="text-end fw-medium">@((t.SoLuong * t.DonGia).ToString("N0")) đ</td>
+                                    </tr>
+                                }
+                                @if (!listThuoc.Any())
+                                {
+                                    <tr><td colspan="5" class="text-center text-muted">Bác sĩ không kê thuốc</td></tr>
+                                }
+                                <tr>
+                                    <td colspan="4" class="text-end fw-bold">Tổng tiền Thuốc:</td>
+                                    <td class="text-end fw-bold text-primary">@Model.TienThuoc.ToString("N0") đ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tổng kết -->
+                    <div class="row mt-5">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="bg-light rounded-4 p-4 text-end border border-primary border-opacity-25">
+                                <h5 class="fw-bold mb-3">Tổng cộng thanh toán</h5>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Tổng dịch vụ:</span>
+                                    <span>@Model.TienDichVu.ToString("N0") đ</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                                    <span class="text-muted">Tổng đơn thuốc:</span>
+                                    <span>@Model.TienThuoc.ToString("N0") đ</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fs-5 fw-bold text-dark">TỔNG TIỀN:</span>
+                                    <span class="fs-4 fw-bold text-danger">@Model.TongTien.ToString("N0") VNĐ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

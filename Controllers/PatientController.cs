@@ -218,5 +218,81 @@ public class PatientController : Controller
 
         return RedirectToAction(nameof(MedicalRecords));
     }
-}
+    // ============ XEM THUỐC ============
+    public async Task<IActionResult> Drugs()
+    {
+        var drugs = await _context.Thuocs
+            .OrderBy(t => t.TenThuoc)
+            .ToListAsync();
+        return View(drugs);
+    }
 
+    // ============ CÀI ĐẶT ============
+    public IActionResult Settings()
+    {
+        // For demonstration purposes, we will pass a dummy settings object.
+        // Real app would load this from DB/Preferences.
+        ViewBag.SmsNotification = true;
+        ViewBag.EmailNotification = true;
+        return View();
+    }
+
+    // ============ ĐỘI NGŨ BÁC SĨ ============
+    public async Task<IActionResult> Doctors()
+    {
+        var doctors = await _context.NguoiDungs
+            .Include(n => n.ChuyenKhoa)
+            .Where(n => n.Role == "BacSi" && n.TrangThai == true)
+            .OrderBy(n => n.HoTen)
+            .ToListAsync();
+        return View(doctors);
+    }
+
+    // ============ CHUYÊN KHOA ============
+    public async Task<IActionResult> Specialties()
+    {
+        var specialties = await _context.ChuyenKhoas
+            .OrderBy(c => c.TenChuyenKhoa)
+            .ToListAsync();
+        return View(specialties);
+    }
+
+    // ============ HÓA ĐƠN VÀ ĐƠN THUỐC ============
+    public async Task<IActionResult> Invoices()
+    {
+        var patientId = GetCurrentPatientId();
+        var invoices = await _context.HoaDons
+            .Include(h => h.PhieuKham)
+                .ThenInclude(p => p.LichKham)
+            .Include(h => h.NguoiLap)
+            .Where(h => h.PhieuKham != null && h.PhieuKham.MaBenhNhan == patientId)
+            .OrderByDescending(h => h.NgayLap)
+            .ToListAsync();
+            
+        return View(invoices);
+    }
+
+    public async Task<IActionResult> InvoiceDetail(int id)
+    {
+        var patientId = GetCurrentPatientId();
+        var invoice = await _context.HoaDons
+            .Include(h => h.NguoiLap)
+            .Include(h => h.PhieuKham)
+                .ThenInclude(p => p.BacSi)
+            .Include(h => h.PhieuKham)
+                .ThenInclude(p => p.ChiTietDonThuocs)
+                .ThenInclude(c => c.Thuoc)
+            .Include(h => h.PhieuKham)
+                .ThenInclude(p => p.ChiTietDichVus)
+                .ThenInclude(c => c.DichVu)
+            .FirstOrDefaultAsync(h => h.MaHoaDon == id && h.PhieuKham != null && h.PhieuKham.MaBenhNhan == patientId);
+
+        if (invoice == null)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy hóa đơn.";
+            return RedirectToAction(nameof(Invoices));
+        }
+
+        return View(invoice);
+    }
+}

@@ -1,0 +1,75 @@
+@model IEnumerable<MyMvcApp.Models.PhieuChi>
+@{
+    ViewData["Title"] = "Quản lý Phiếu Chi / Hoàn tiền";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0 text-primary"><i class="fas fa-money-bill-wave me-2"></i> Lịch sử Phiếu Chi / Hoàn tiền</h4>
+                <p class="text-muted mt-2 mb-0">Quản lý dòng tiền xuất ra của phòng khám.</p>
+            </div>
+            <a asp-action="CreateExpense" class="btn btn-primary rounded-pill px-4">
+                <i class="fas fa-plus me-1"></i> Lập Phiếu Chi Mới
+            </a>
+        </div>
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-1"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="table-responsive mt-3">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã Phiếu</th>
+                            <th>Ngày lập</th>
+                            <th>Loại phiếu</th>
+                            <th>Lý do chi</th>
+                            <th>Số tiền</th>
+                            <th>Người lập</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-secondary">#PC-@item.MaPhieuChi.ToString("D4")</td>
+                                <td>@item.NgayLap.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if(item.LoaiPhieu == "HoanTien")
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-undo me-1"></i> Hoàn tiền</span>
+                                    }
+                                    else if(item.LoaiPhieu == "NhapThuoc")
+                                    {
+                                        <span class="badge bg-info text-dark"><i class="fas fa-boxes me-1"></i> Nhập thuốc</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary"><i class="fas fa-ellipsis-h me-1"></i> Chi khác</span>
+                                    }
+                                </td>
+                                <td>@item.LyDo</td>
+                                <td class="text-danger fw-bold">-@item.SoTien.ToString("N0") đ</td>
+                                <td>@(item.NguoiLap?.HoTen ?? "N/A")</td>
+                            </tr>
+                        }
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Chưa có dữ liệu phiếu chi nào.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

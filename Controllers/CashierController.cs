@@ -6,7 +6,7 @@ using MyMvcApp.Models;
 
 namespace MyMvcApp.Controllers;
 
-[Authorize(Roles = "ThuNgan,Manager,Admin")]
+[Authorize(Roles = "ThuNgan,Manager,Admin,LeTan")]
 public class CashierController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -193,5 +193,138 @@ public class CashierController : Controller
         ViewBag.CardRevenue = invoicesToday.Where(h => h.TrangThaiThanhToan == "DaThanhToan" && h.PhuongThucThanhToan == "TheNganHang").Sum(h => h.TongTien);
 
         return View(invoicesToday);
+    }
+
+    // ==========================================
+    // 1. QUẢN LÝ KHO THUỐC
+    // ==========================================
+    public async Task<IActionResult> Inventory()
+    {
+        var drugs = await _context.Thuocs.OrderBy(t => t.TenThuoc).ToListAsync();
+        return View(drugs);
+    }
+
+    public IActionResult CreateDrug() => View();
+
+    [HttpPost]
+    public async Task<IActionResult> CreateDrug(Thuoc model)
+    {
+        if (ModelState.IsValid)
+        {
+            _context.Thuocs.Add(model);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Đã thêm thuốc mới thành công!";
+            return RedirectToAction(nameof(Inventory));
+        }
+        return View(model);
+    }
+
+    public async Task<IActionResult> EditDrug(int id)
+    {
+        var drug = await _context.Thuocs.FindAsync(id);
+        if (drug == null) return NotFound();
+        return View(drug);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditDrug(Thuoc model)
+    {
+        if (ModelState.IsValid)
+        {
+            _context.Update(model);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cập nhật thuốc thành công!";
+            return RedirectToAction(nameof(Inventory));
+        }
+        return View(model);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteDrug(int id)
+    {
+        var drug = await _context.Thuocs.FindAsync(id);
+        if (drug != null)
+        {
+            _context.Thuocs.Remove(drug);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Đã xóa thuốc khỏi kho.";
+        }
+        return RedirectToAction(nameof(Inventory));
+    }
+
+    // ==========================================
+    // 2. QUẢN LÝ PHIẾU CHI
+    // ==========================================
+    public async Task<IActionResult> Expenses()
+    {
+        var expenses = await _context.PhieuChis
+            .Include(p => p.NguoiLap)
+            .OrderByDescending(p => p.NgayLap)
+            .ToListAsync();
+        return View(expenses);
+    }
+
+    public IActionResult CreateExpense()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateExpense(PhieuChi model)
+    {
+        model.MaNguoiLap = GetCurrentUserId();
+        model.NgayLap = DateTime.Now;
+        
+        ModelState.Remove("NguoiLap");
+        ModelState.Remove("BenhNhan");
+        
+        if (ModelState.IsValid)
+        {
+            _context.PhieuChis.Add(model);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Đã lập phiếu chi thành công!";
+            return RedirectToAction(nameof(Expenses));
+        }
+        return View(model);
+    }
+
+    // ==========================================
+    // 3. BÁO CÁO DOANH THU NÂNG CAO
+    // ==========================================
+    public async Task<IActionResult> RevenueReport(int days = 30)
+    {
+        var startDate = DateTime.Today.AddDays(-days);
+        
+        var invoices = await _context.HoaDons
+            .Where(h => h.TrangThaiThanhToan == "DaThanhToan" && h.NgayLap >= startDate)
+            .OrderBy(h => h.NgayLap)
+            .ToListAsync();
+
+        var expenses = await _context.PhieuChis
+            .Where(p => p.NgayLap >= startDate)
+            .ToListAsync();
+
+        ViewBag.TotalRevenue = invoices.Sum(h => h.TongTien);
+        ViewBag.TotalDrugRevenue = invoices.Sum(h => h.TienThuoc);
+        ViewBag.TotalServiceRevenue = invoices.Sum(h => h.TienDichVu);
+        ViewBag.TotalExpense = expenses.Sum(p => p.SoTien);
+
+        // Chuẩn bị dữ liệu cho biểu đồ Chart.js (nhóm theo ngày)
+        var dates = Enumerable.Range(0, days + 1).Select(i => startDate.AddDays(i)).ToList();
+        
+        var revenueData = dates.Select(d => 
+            invoices.Where(h => h.NgayLap.HasValue && h.NgayLap.Value.Date == d.Date).Sum(h => h.TongTien)
+        ).ToList();
+
+        var expenseData = dates.Select(d => 
+            expenses.Where(p => p.NgayLap.Date == d.Date).Sum(p => p.SoTien)
+        ).ToList();
+
+        ViewBag.ChartLabels = string.Join(",", dates.Select(d => $"'{d.ToString("dd/MM")}'"));
+        ViewBag.ChartRevenue = string.Join(",", revenueData);
+        ViewBag.ChartExpense = string.Join(",", expenseData);
+        ViewBag.Days = days;
+
+        return View();
     }
 }

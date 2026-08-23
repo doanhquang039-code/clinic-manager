@@ -1,0 +1,46 @@
+@{
+    ViewData["Title"] = "Cài đặt hệ thống";
+    Layout = "_PortalLayout";
+}
+
+<div class="premium-card">
+    <h2 class="fw-bold mb-4"><i class="fas fa-cog text-secondary me-2"></i>Cài đặt hiển thị</h2>
+    
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Giao diện</h5>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                        <label class="form-check-label" for="darkModeSwitch">Chế độ tối (Dark Mode)</label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="compactMenuSwitch" checked>
+                        <label class="form-check-label" for="compactMenuSwitch">Thu gọn menu bên trái</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Thông báo</h5>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="notifSoundSwitch" checked>
+                        <label class="form-check-label" for="notifSoundSwitch">Âm thanh thông báo khi có lịch hẹn mới</label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="notifPopupSwitch" checked>
+                        <label class="form-check-label" for="notifPopupSwitch">Hiển thị popup góc phải màn hình</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 text-end">
+        <button class="btn btn-primary px-4 rounded-pill"><i class="fas fa-save me-2"></i>Lưu cấu hình</button>
+    </div>
+</div>

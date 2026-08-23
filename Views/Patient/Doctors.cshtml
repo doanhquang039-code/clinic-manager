@@ -1,0 +1,50 @@
+@model IEnumerable<MyMvcApp.Models.NguoiDung>
+@{
+    ViewData["Title"] = "Đội ngũ Bác sĩ";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0">
+            <h4 class="mb-0 text-primary"><i class="fas fa-user-md me-2"></i> Đội ngũ Bác sĩ chuyên môn</h4>
+            <p class="text-muted mt-2">Đội ngũ y bác sĩ giàu kinh nghiệm, tận tâm vì sức khỏe của bạn.</p>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var doctor in Model)
+                {
+                    <div class="col">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                            <div class="card-body text-center p-4">
+                                <div class="avatar-circle bg-primary text-white d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; font-size: 32px;">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <h5 class="card-title fw-bold">@doctor.HoTen</h5>
+                                <p class="card-text text-primary fw-medium mb-1">
+                                    <i class="fas fa-stethoscope me-1"></i> 
+                                    @(doctor.ChuyenKhoa != null ? doctor.ChuyenKhoa.TenChuyenKhoa : "Đa khoa")
+                                </p>
+                                <div class="text-muted small mb-3">
+                                    <i class="fas fa-envelope me-1"></i> @doctor.Email<br />
+                                    <i class="fas fa-phone-alt me-1"></i> @(string.IsNullOrEmpty(doctor.SoDienThoai) ? "Đang cập nhật" : doctor.SoDienThoai)
+                                </div>
+                                <a asp-controller="Patient" asp-action="BookAppointment" class="btn btn-outline-primary rounded-pill w-100 mt-2">
+                                    Đặt lịch hẹn
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            @if(!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Hệ thống đang cập nhật danh sách bác sĩ.</h5>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,55 @@
+@model IEnumerable<MyMvcApp.Models.NguoiDung>
+@{
+    ViewData["Title"] = "Trạng thái Bác sĩ";
+    Layout = "_PortalLayout";
+}
+
+<div class="premium-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-title mb-0">Bác sĩ đang hoạt động</h2>
+        <span class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-circle text-white spinner-grow spinner-grow-sm me-1"></i> Đang cập nhật trực tuyến</span>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var doctor in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3 position-relative d-inline-block">
+                                <div style="width: 80px; height: 80px; border-radius: 50%; background-color: #f0f4f8; color: #1e3a8a; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto;">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <span class="position-absolute bottom-0 end-0 p-2 bg-success border border-light rounded-circle" title="Đang làm việc"></span>
+                            </div>
+                            <h5 class="card-title fw-bold text-primary mb-1">@doctor.HoTen</h5>
+                            <p class="card-text text-muted small mb-3">
+                                <i class="fas fa-stethoscope"></i> @(doctor.ChuyenKhoa?.TenChuyenKhoa ?? "Đa khoa")
+                            </p>
+                            
+                            <div class="d-flex justify-content-center gap-2 mt-3">
+                                <a asp-controller="Doctor" asp-action="MonthlySchedule" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    <i class="fas fa-calendar-alt"></i> Xem lịch
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light border-0 py-3 text-center">
+                            <span class="text-success small fw-bold"><i class="fas fa-check-circle"></i> Đang sẵn sàng nhận bệnh</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info border-0 shadow-sm text-center py-4">
+                    <i class="fas fa-info-circle fa-2x mb-2 text-info"></i>
+                    <p class="mb-0">Hiện tại không có bác sĩ nào đang trong ca làm việc.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>

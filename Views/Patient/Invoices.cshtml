@@ -1,0 +1,60 @@
+@model IEnumerable<MyMvcApp.Models.HoaDon>
+@{
+    ViewData["Title"] = "Hóa đơn & Đơn thuốc";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0">
+            <h4 class="mb-0 text-primary"><i class="fas fa-file-invoice-dollar me-2"></i> Lịch sử Hóa đơn & Đơn thuốc</h4>
+            <p class="text-muted mt-2">Tra cứu chi tiết các dịch vụ đã sử dụng và đơn thuốc đã mua tại phòng khám.</p>
+        </div>
+        <div class="card-body">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã HĐ</th>
+                            <th>Ngày khám/lập</th>
+                            <th>Thu ngân</th>
+                            <th>Tiền Dịch vụ</th>
+                            <th>Tiền Thuốc</th>
+                            <th>Tổng thanh toán</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">#HD-@item.MaHoaDon.ToString("D5")</td>
+                                <td>@item.NgayLap?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@(item.NguoiLap?.HoTen ?? "N/A")</td>
+                                <td>@item.TienDichVu.ToString("N0") đ</td>
+                                <td>@item.TienThuoc.ToString("N0") đ</td>
+                                <td class="fw-bold text-danger">@item.TongTien.ToString("N0") đ</td>
+                                <td>
+                                    <a asp-action="InvoiceDetail" asp-route-id="@item.MaHoaDon" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="fas fa-eye me-1"></i> Xem chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">Bạn chưa có hóa đơn thanh toán nào.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

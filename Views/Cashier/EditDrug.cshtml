@@ -1,0 +1,71 @@
+@model MyMvcApp.Models.Thuoc
+@{
+    ViewData["Title"] = "Cập Nhật Thuốc";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h4 class="mb-0 text-primary"><i class="fas fa-edit me-2"></i> Cập Nhật Thông Tin Thuốc</h4>
+                    <p class="text-muted mt-2">Chỉnh sửa tên thuốc, giá bán hoặc cập nhật số lượng tồn kho.</p>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="EditDrug" method="post">
+                        <input type="hidden" asp-for="MaThuoc" />
+                        
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Tên Thuốc <span class="text-danger">*</span></label>
+                                <input asp-for="TenThuoc" class="form-control" required />
+                                <span asp-validation-for="TenThuoc" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Đơn vị tính <span class="text-danger">*</span></label>
+                                <input asp-for="DonViTinh" class="form-control" required />
+                                <span asp-validation-for="DonViTinh" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Đơn Giá (VNĐ) <span class="text-danger">*</span></label>
+                                <input asp-for="DonGia" type="number" class="form-control" required />
+                                <span asp-validation-for="DonGia" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Số Lượng Tồn <span class="text-danger">*</span></label>
+                                <input asp-for="SoLuongTon" type="number" class="form-control" required />
+                                <span asp-validation-for="SoLuongTon" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Hạn Sử Dụng</label>
+                                <input asp-for="HanSuDung" type="date" class="form-control" />
+                                <span asp-validation-for="HanSuDung" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Trạng Thái</label>
+                                <select asp-for="TrangThai" class="form-select">
+                                    <option value="ConHang">Còn hàng</option>
+                                    <option value="HetHang">Hết hàng</option>
+                                    <option value="NgungBan">Ngừng bán</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top text-end">
+                            <a asp-action="Inventory" class="btn btn-light rounded-pill px-4 me-2">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                <i class="fas fa-save me-1"></i> Lưu Thay Đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

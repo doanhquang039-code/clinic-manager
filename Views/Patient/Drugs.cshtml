@@ -1,0 +1,54 @@
+@model IEnumerable<MyMvcApp.Models.Thuoc>
+@{
+    ViewData["Title"] = "Danh mục thuốc";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0">
+            <h4 class="mb-0 text-primary"><i class="fas fa-pills me-2"></i> Danh mục thuốc tại phòng khám</h4>
+            <p class="text-muted mt-2">Tra cứu các loại thuốc và giá niêm yết hiện có tại MediCore.</p>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tên thuốc</th>
+                            <th>Đơn vị tính</th>
+                            <th>Đơn giá (VNĐ)</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">@item.TenThuoc</td>
+                                <td>@item.DonViTinh</td>
+                                <td class="text-primary fw-bold">@item.DonGia.ToString("N0") đ</td>
+                                <td>
+                                    @if (item.TrangThai == "ConHang")
+                                    {
+                                        <span class="badge bg-success rounded-pill px-3 py-2">Có sẵn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary rounded-pill px-3 py-2">Hết hàng</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if(!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">Chưa có dữ liệu thuốc.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

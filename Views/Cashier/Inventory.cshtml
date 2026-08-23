@@ -1,0 +1,78 @@
+@model IEnumerable<MyMvcApp.Models.Thuoc>
+@{
+    ViewData["Title"] = "Quản lý Kho thuốc";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0 text-primary"><i class="fas fa-boxes me-2"></i> Quản lý Kho thuốc</h4>
+                <p class="text-muted mt-2 mb-0">Theo dõi số lượng tồn kho và cập nhật danh mục thuốc.</p>
+            </div>
+            <a asp-action="CreateDrug" class="btn btn-primary rounded-pill px-4">
+                <i class="fas fa-plus me-1"></i> Thêm Thuốc mới
+            </a>
+        </div>
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-1"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="table-responsive mt-3">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã Thuốc</th>
+                            <th>Tên thuốc</th>
+                            <th>Đơn vị tính</th>
+                            <th>Đơn giá</th>
+                            <th>Số lượng tồn</th>
+                            <th>Hạn sử dụng</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-secondary">#@item.MaThuoc</td>
+                                <td class="fw-bold text-dark">@item.TenThuoc</td>
+                                <td>@item.DonViTinh</td>
+                                <td class="text-primary fw-bold">@item.DonGia.ToString("N0") đ</td>
+                                <td>
+                                    @if(item.SoLuongTon <= 10)
+                                    {
+                                        <span class="badge bg-danger rounded-pill px-3 py-2">@item.SoLuongTon (Sắp hết)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success rounded-pill px-3 py-2">@item.SoLuongTon</span>
+                                    }
+                                </td>
+                                <td>@(item.HanSuDung?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a asp-action="EditDrug" asp-route-id="@item.MaThuoc" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="DeleteDrug" asp-route-id="@item.MaThuoc" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa loại thuốc này khỏi hệ thống?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

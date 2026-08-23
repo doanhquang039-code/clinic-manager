@@ -1,0 +1,67 @@
+@model IEnumerable<MyMvcApp.Models.LichKham>
+@{
+    ViewData["Title"] = "Lịch hẹn đặt trước";
+    Layout = "_PortalLayout";
+}
+
+<div class="premium-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-title mb-0">Lịch Hẹn Bệnh Nhân Đặt Trước</h2>
+        <a asp-controller="LichKham" asp-action="Create" class="btn btn-premium">
+            <i class="fas fa-plus"></i> Đặt lịch mới
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table premium-table">
+            <thead>
+                <tr>
+                    <th>Bệnh nhân</th>
+                    <th>Ngày khám</th>
+                    <th>Giờ khám</th>
+                    <th>Bác sĩ</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">@item.BenhNhan?.HoTen</td>
+                            <td>@item.NgayKham.ToString("dd/MM/yyyy")</td>
+                            <td>@item.GioKham.ToString(@"hh\:mm")</td>
+                            <td>@(item.BacSi?.HoTen ?? "Chưa phân bổ")</td>
+                            <td>
+                                @if (item.TrangThai == "ChoXacNhan")
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Chờ xác nhận</span>
+                                }
+                                else if (item.TrangThai == "DaXacNhan")
+                                {
+                                    <span class="badge bg-info"><i class="fas fa-check-circle"></i> Đã xác nhận</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-controller="LichKham" asp-action="Edit" asp-route-id="@item.MaLichKham" class="btn btn-sm btn-outline-primary" title="Cập nhật trạng thái">
+                                    <i class="fas fa-edit"></i> Xử lý
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                            <p>Không có lịch hẹn mới nào đang chờ xử lý.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
