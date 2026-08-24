@@ -12,12 +12,18 @@ builder.Services.AddControllers(); // For API endpoints
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = "ExternalCookie";
 })
 .AddCookie(options =>
 {
     options.LoginPath = "/Auth/Login";
     options.AccessDeniedPath = "/Auth/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
+})
+.AddCookie("ExternalCookie", options =>
+{
+    options.Cookie.Name = "ExternalCookie";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10); // chỉ tồn tại tạm thời
 })
 .AddGoogle(googleOptions =>
 {
@@ -55,7 +61,7 @@ builder.Services.AddScoped(typeof(MyMvcApp.Repositories.IRepository<>), typeof(M
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<MyMvcApp.Models.ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseSqlServer(connectionString));
 
 var app = builder.Build();
 

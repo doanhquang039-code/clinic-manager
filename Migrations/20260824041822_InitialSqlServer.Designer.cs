@@ -12,8 +12,8 @@ using MyMvcApp.Models;
 namespace MyMvcApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260818045344_SeedData")]
-    partial class SeedData
+    [Migration("20260824041822_InitialSqlServer")]
+    partial class InitialSqlServer
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,9 +21,9 @@ namespace MyMvcApp.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.8")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("MyMvcApp.Models.BenhNhan", b =>
                 {
@@ -31,57 +31,60 @@ namespace MyMvcApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaBenhNhan"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaBenhNhan"));
 
                     b.Property<string>("CCCD")
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("nvarchar(12)");
 
                     b.Property<string>("DiUng")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("DiaChi")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("GioiTinh")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HoTen")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("MatKhau")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime>("NgaySinh")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("NgayTao")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("SoDienThoai")
                         .HasMaxLength(15)
-                        .HasColumnType("varchar(15)");
+                        .HasColumnType("nvarchar(15)");
 
                     b.HasKey("MaBenhNhan");
 
                     b.HasIndex("CCCD")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[CCCD] IS NOT NULL AND [CCCD] <> ''");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL AND [Email] <> ''");
 
                     b.HasIndex("SoDienThoai")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[SoDienThoai] IS NOT NULL");
 
                     b.ToTable("BenhNhans");
 
@@ -130,7 +133,7 @@ namespace MyMvcApp.Migrations
 
                     b.Property<string>("KetQua")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("SoLuong")
                         .HasColumnType("int");
@@ -154,14 +157,14 @@ namespace MyMvcApp.Migrations
 
                     b.Property<string>("CachDung")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<decimal>("DonGia")
                         .HasColumnType("decimal(12,2)");
 
                     b.Property<string>("LieuDung")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("SoLuong")
                         .HasColumnType("int");
@@ -179,16 +182,16 @@ namespace MyMvcApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaChuyenKhoa"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaChuyenKhoa"));
 
                     b.Property<string>("MoTa")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("TenChuyenKhoa")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("MaChuyenKhoa");
 
@@ -239,19 +242,19 @@ namespace MyMvcApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaDichVu"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaDichVu"));
 
                     b.Property<decimal>("DonGia")
                         .HasColumnType("decimal(12,2)");
 
                     b.Property<string>("MoTa")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("TenDichVu")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("MaDichVu");
 
@@ -264,7 +267,7 @@ namespace MyMvcApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaHoaDon"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaHoaDon"));
 
                     b.Property<int>("MaNguoiLap")
                         .HasColumnType("int");
@@ -273,11 +276,11 @@ namespace MyMvcApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("NgayLap")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PhuongThucThanhToan")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TienDichVu")
                         .HasColumnType("decimal(12,2)");
@@ -291,7 +294,7 @@ namespace MyMvcApp.Migrations
 
                     b.Property<string>("TrangThaiThanhToan")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MaHoaDon");
 
@@ -309,14 +312,14 @@ namespace MyMvcApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaLichKham"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaLichKham"));
 
                     b.Property<TimeSpan>("GioKham")
-                        .HasColumnType("time(6)");
+                        .HasColumnType("time");
 
                     b.Property<string>("LyDoKham")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("MaBacSi")
                         .HasColumnType("int");
@@ -325,14 +328,14 @@ namespace MyMvcApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("NgayKham")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("NgayTao")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("TrangThai")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MaLichKham");
 
@@ -350,16 +353,16 @@ namespace MyMvcApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaNguoiDung"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaNguoiDung"));
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("HoTen")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("MaChuyenKhoa")
                         .HasColumnType("int");
@@ -367,31 +370,33 @@ namespace MyMvcApp.Migrations
                     b.Property<string>("MatKhau")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<DateTime?>("NgayTao")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SoDienThoai")
                         .HasMaxLength(15)
-                        .HasColumnType("varchar(15)");
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<bool>("TrangThai")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("bit");
 
                     b.HasKey("MaNguoiDung");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL");
 
                     b.HasIndex("MaChuyenKhoa");
 
                     b.HasIndex("SoDienThoai")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[SoDienThoai] IS NOT NULL");
 
                     b.ToTable("NguoiDungs");
 
@@ -499,7 +504,57 @@ namespace MyMvcApp.Migrations
                             Role = "BacSi",
                             SoDienThoai = "0955555555",
                             TrangThai = false
+                        },
+                        new
+                        {
+                            MaNguoiDung = 10,
+                            Email = "thungan@medicore.com",
+                            HoTen = "Thu Ngân 1",
+                            MatKhau = "123456",
+                            NgayTao = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Role = "ThuNgan",
+                            SoDienThoai = "0900000000",
+                            TrangThai = true
                         });
+                });
+
+            modelBuilder.Entity("MyMvcApp.Models.PhieuChi", b =>
+                {
+                    b.Property<int>("MaPhieuChi")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaPhieuChi"));
+
+                    b.Property<string>("LoaiPhieu")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LyDo")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int?>("MaBenhNhan")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaNguoiLap")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NgayLap")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("SoTien")
+                        .HasColumnType("decimal(12,2)");
+
+                    b.HasKey("MaPhieuChi");
+
+                    b.HasIndex("MaBenhNhan");
+
+                    b.HasIndex("MaNguoiLap");
+
+                    b.ToTable("PhieuChis");
                 });
 
             modelBuilder.Entity("MyMvcApp.Models.PhieuKham", b =>
@@ -508,20 +563,23 @@ namespace MyMvcApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaPhieuKham"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaPhieuKham"));
 
                     b.Property<string>("ChanDoan")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int?>("DanhGia")
+                        .HasColumnType("int");
 
                     b.Property<string>("GhiChu")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("LoiDan")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("MaBacSi")
                         .HasColumnType("int");
@@ -533,11 +591,15 @@ namespace MyMvcApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("NgayKham")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NhanXet")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("TrieuChung")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("MaPhieuKham");
 
@@ -546,9 +608,48 @@ namespace MyMvcApp.Migrations
                     b.HasIndex("MaBenhNhan");
 
                     b.HasIndex("MaLichKham")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[MaLichKham] IS NOT NULL");
 
                     b.ToTable("PhieuKhams");
+                });
+
+            modelBuilder.Entity("MyMvcApp.Models.ThongBao", b =>
+                {
+                    b.Property<int>("MaThongBao")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaThongBao"));
+
+                    b.Property<bool>("DaDoc")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Link")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("MaNguoiDung")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("MaThongBao");
+
+                    b.HasIndex("MaNguoiDung");
+
+                    b.ToTable("ThongBaos");
                 });
 
             modelBuilder.Entity("MyMvcApp.Models.Thuoc", b =>
@@ -557,7 +658,7 @@ namespace MyMvcApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaThuoc"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaThuoc"));
 
                     b.Property<decimal>("DonGia")
                         .HasColumnType("decimal(12,2)");
@@ -565,10 +666,10 @@ namespace MyMvcApp.Migrations
                     b.Property<string>("DonViTinh")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime?>("HanSuDung")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("SoLuongTon")
                         .HasColumnType("int");
@@ -576,11 +677,11 @@ namespace MyMvcApp.Migrations
                     b.Property<string>("TenThuoc")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("TrangThai")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MaThuoc");
 
@@ -673,6 +774,23 @@ namespace MyMvcApp.Migrations
                     b.Navigation("ChuyenKhoa");
                 });
 
+            modelBuilder.Entity("MyMvcApp.Models.PhieuChi", b =>
+                {
+                    b.HasOne("MyMvcApp.Models.BenhNhan", "BenhNhan")
+                        .WithMany()
+                        .HasForeignKey("MaBenhNhan");
+
+                    b.HasOne("MyMvcApp.Models.NguoiDung", "NguoiLap")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiLap")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BenhNhan");
+
+                    b.Navigation("NguoiLap");
+                });
+
             modelBuilder.Entity("MyMvcApp.Models.PhieuKham", b =>
                 {
                     b.HasOne("MyMvcApp.Models.NguoiDung", "BacSi")
@@ -697,6 +815,17 @@ namespace MyMvcApp.Migrations
                     b.Navigation("BenhNhan");
 
                     b.Navigation("LichKham");
+                });
+
+            modelBuilder.Entity("MyMvcApp.Models.ThongBao", b =>
+                {
+                    b.HasOne("MyMvcApp.Models.NguoiDung", "NguoiNhan")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiDung")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NguoiNhan");
                 });
 
             modelBuilder.Entity("MyMvcApp.Models.BenhNhan", b =>

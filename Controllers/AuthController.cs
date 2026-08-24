@@ -76,6 +76,7 @@ public class AuthController : Controller
     {
         var redirectUrl = Url.Action("ExternalLoginCallback", "Auth", new { ReturnUrl = returnUrl });
         var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        // Challenge: khi thành công, provider sẽ sign-in vào scheme DefaultSignInScheme ("ExternalCookie")
         return Challenge(properties, provider);
     }
 
@@ -84,31 +85,49 @@ public class AuthController : Controller
     {
         if (remoteError != null)
         {
-            ModelState.AddModelError("", $"Lỗi từ nhà cung cấp: {remoteError}");
-            return View("Login");
+            TempData["ErrorMessage"] = $"Lỗi từ nhà cung cấp: {remoteError}";
+            return RedirectToAction("Login");
         }
 
-        var info = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        // Đọc thông tin từ external cookie mà provider đã ghi vào sau khi OAuth thành công
+        // ASP.NET Core OAuth middleware dùng DefaultSignInScheme = "ExternalCookie"
+        AuthenticateResult? info = null;
+        foreach (var scheme in new[] { "ExternalCookie", "Identity.External", CookieAuthenticationDefaults.AuthenticationScheme })
+        {
+            try
+            {
+                info = await HttpContext.AuthenticateAsync(scheme);
+                if (info?.Succeeded == true) break;
+            }
+            catch { /* scheme không tồn tại, thử cái tiếp theo */ }
+        }
+
         if (info == null || !info.Succeeded)
         {
+            TempData["ErrorMessage"] = "Không thể xác thực với nhà cung cấp bên ngoài. Vui lòng thử lại.";
             return RedirectToAction("Login");
         }
 
         var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-        var name = info.Principal.FindFirstValue(ClaimTypes.Name);
+        var name  = info.Principal.FindFirstValue(ClaimTypes.Name)
+                    ?? info.Principal.FindFirstValue("urn:github:name")
+                    ?? info.Principal.FindFirstValue("name");
+
+        // Xóa đúng cookie external tạm thời (không phải cookie đăng nhập chính)
+        try { await HttpContext.SignOutAsync("ExternalCookie"); } catch { }
+        try { await HttpContext.SignOutAsync("Identity.External"); } catch { }
 
         if (string.IsNullOrEmpty(email))
         {
-            ModelState.AddModelError("", "Không thể lấy email từ nhà cung cấp mạng xã hội.");
-            return View("Login");
+            TempData["ErrorMessage"] = "Không thể lấy email từ nhà cung cấp. Vui lòng đăng ký thủ công.";
+            return RedirectToAction("Login");
         }
 
-        // 1. Kiểm tra bảng NguoiDung
+        // 1. Kiểm tra bảng NguoiDung (staff/admin)
         var users = await _nguoiDungRepository.FindAsync(u => u.Email == email);
         var user = users.FirstOrDefault();
         if (user != null)
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme); // Đăng xuất cookie thô của Google
             await SignInUserAsync(user.MaNguoiDung.ToString(), user.HoTen, user.Role, "NguoiDung");
             return RedirectToLocal(returnUrl);
         }
@@ -118,29 +137,24 @@ public class AuthController : Controller
         var patient = patients.FirstOrDefault();
         if (patient != null)
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             await SignInUserAsync(patient.MaBenhNhan.ToString(), patient.HoTen, "BenhNhan", "BenhNhan");
             return RedirectToLocal(returnUrl);
         }
 
-        // Nếu chưa tồn tại, tự động tạo tài khoản Bệnh nhân mới theo yêu cầu
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        
+        // 3. Tạo tài khoản mới và tự động đăng nhập (luồng OAuth2 tiêu chuẩn)
         var newPatient = new BenhNhan
         {
             HoTen = string.IsNullOrWhiteSpace(name) ? "Người dùng mới" : name,
             Email = email,
-            GioiTinh = "Khac", // Mặc định
-            NgaySinh = new DateTime(2000, 1, 1), // Mặc định
-            MatKhau = Guid.NewGuid().ToString().Substring(0, 8), // Mật khẩu ngẫu nhiên
+            GioiTinh = "Khac",
+            NgaySinh = new DateTime(2000, 1, 1),
+            MatKhau = Guid.NewGuid().ToString()[..8],
             NgayTao = DateTime.Now
         };
         await _benhNhanRepository.AddAsync(newPatient);
 
-        // Đăng nhập với tài khoản vừa tạo
         await SignInUserAsync(newPatient.MaBenhNhan.ToString(), newPatient.HoTen, "BenhNhan", "BenhNhan");
-        
-        TempData["SuccessMessage"] = "Đăng nhập Google thành công! Tài khoản Bệnh nhân của bạn đã được tự động tạo.";
+        TempData["SuccessMessage"] = $"Xin chào {newPatient.HoTen}! Tài khoản đã được tạo tự động từ tài khoản {email}.";
         return RedirectToAction("Index", "Patient");
     }
 
@@ -216,7 +230,8 @@ public class AuthController : Controller
         };
 
         await _benhNhanRepository.AddAsync(benhNhan);
-        TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+        // KHÔNG tự động đăng nhập — redirect về trang Login để người dùng tự đăng nhập
+        TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập bằng số điện thoại hoặc email của bạn.";
         return RedirectToAction("Login");
     }
 
