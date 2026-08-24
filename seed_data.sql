@@ -1,7 +1,7 @@
 -- Kịch bản thêm dữ liệu mẫu cho hệ thống Phòng Khám (MediCore)
 -- Chạy script này trong SQL Server Management Studio (hoặc Azure Data Studio) sau khi đã chạy Entity Framework Migrations (Update-Database)
 
-USE [MyMvcApp]; -- Thay bằng tên Database thực tế của bạn nếu khác
+USE [db65136]; -- Thay bằng tên Database thực tế của bạn nếu khác
 GO
 
 -- 1. Thêm dữ liệu Chuyên khoa

@@ -28,7 +28,7 @@ builder.Services.AddAuthentication(options =>
 .AddGoogle(googleOptions =>
 {
     googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? (builder.Configuration["Authentication:Google:ClientSecret1"] + builder.Configuration["Authentication:Google:ClientSecret2"]);
     googleOptions.Events = new OAuthEvents
     {
         OnRedirectToAuthorizationEndpoint = context =>
@@ -41,12 +41,12 @@ builder.Services.AddAuthentication(options =>
 .AddGitHub(githubOptions =>
 {
     githubOptions.ClientId = builder.Configuration["Authentication:GitHub:ClientId"];
-    githubOptions.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
+    githubOptions.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"] ?? (builder.Configuration["Authentication:GitHub:ClientSecret1"] + builder.Configuration["Authentication:GitHub:ClientSecret2"]);
 })
 .AddMicrosoftAccount(microsoftOptions =>
 {
     microsoftOptions.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"];
-    microsoftOptions.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"];
+    microsoftOptions.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"] ?? (builder.Configuration["Authentication:Microsoft:ClientSecret1"] + builder.Configuration["Authentication:Microsoft:ClientSecret2"]);
     microsoftOptions.Events = new OAuthEvents
     {
         OnRedirectToAuthorizationEndpoint = context =>
@@ -65,6 +65,21 @@ builder.Services.AddDbContext<MyMvcApp.Models.ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
+// Run migrations on startup (important for MonsterASP since remote connection is blocked)
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<MyMvcApp.Models.ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -73,7 +88,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Tạm tắt để chạy được trên HTTP thường
 app.UseStaticFiles();
 
 app.UseRouting();
