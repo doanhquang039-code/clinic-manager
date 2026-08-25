@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyMvcApp.Models;
 using MyMvcApp.Repositories;
+using MyMvcApp.Services;
 
 namespace MyMvcApp.Controllers;
 
@@ -10,10 +11,12 @@ namespace MyMvcApp.Controllers;
 public class AdminController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IImageService _imageService;
 
-    public AdminController(ApplicationDbContext context)
+    public AdminController(ApplicationDbContext context, IImageService imageService)
     {
         _context = context;
+        _imageService = imageService;
     }
 
     public async Task<IActionResult> Index()
@@ -67,7 +70,8 @@ public class AdminController : Controller
                 Role = nd.Role == "BacSi" ? "Doctor" : (nd.Role == "Admin" ? "Admin" : (nd.Role == "Manager" ? "Manager" : "Staff")),
                 IsActive = nd.TrangThai,
                 CreatedAt = nd.NgayTao ?? DateTime.Now.AddDays(-100),
-                Type = "NguoiDung"
+                Type = "NguoiDung",
+                AvatarUrl = nd.AvatarUrl
             });
         }
 
@@ -81,7 +85,8 @@ public class AdminController : Controller
                 Role = "Patient",
                 IsActive = true, // BenhNhan currently has no TrangThai field, assume active
                 CreatedAt = bn.NgayTao ?? DateTime.Now.AddDays(-50),
-                Type = "BenhNhan"
+                Type = "BenhNhan",
+                AvatarUrl = bn.AvatarUrl
             });
         }
 
@@ -136,14 +141,30 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> EditAccount(string Id, string Type, string HoTen, string Role)
+    public async Task<IActionResult> EditAccount(string Id, string Type, string HoTen, string Role, IFormFile? AvatarFile)
     {
+        string? uploadedUrl = null;
+        if (AvatarFile != null)
+        {
+            try
+            {
+                uploadedUrl = await _imageService.UploadImageAsync(AvatarFile);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi upload ảnh: {ex.Message}";
+                return RedirectToAction("Accounts");
+            }
+        }
+
         if (Type == "NguoiDung" && int.TryParse(Id, out int ndId))
         {
             var user = await _context.NguoiDungs.FindAsync(ndId);
             if (user != null)
             {
                 user.HoTen = HoTen;
+                if (uploadedUrl != null)
+                    user.AvatarUrl = uploadedUrl;
                 if (!string.IsNullOrEmpty(Role))
                     user.Role = Role;
                 await _context.SaveChangesAsync();
@@ -156,6 +177,8 @@ public class AdminController : Controller
             if (patient != null)
             {
                 patient.HoTen = HoTen;
+                if (uploadedUrl != null)
+                    patient.AvatarUrl = uploadedUrl;
                 // Bệnh nhân không đổi role
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Cập nhật tài khoản bệnh nhân thành công!";

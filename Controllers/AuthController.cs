@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using MyMvcApp.Models;
 using MyMvcApp.Repositories;
 
@@ -50,7 +51,7 @@ public class AuthController : Controller
                     return View(model);
                 }
 
-                await SignInUserAsync(user.MaNguoiDung.ToString(), user.HoTen, user.Role, "NguoiDung");
+                await SignInUserAsync(user.MaNguoiDung.ToString(), user.HoTen, user.Role, "NguoiDung", user.AvatarUrl);
                 return RedirectToLocal(returnUrl);
             }
         }
@@ -62,7 +63,7 @@ public class AuthController : Controller
 
             if (patient != null && patient.MatKhau == model.Password)
             {
-                await SignInUserAsync(patient.MaBenhNhan.ToString(), patient.HoTen, "BenhNhan", "BenhNhan");
+                await SignInUserAsync(patient.MaBenhNhan.ToString(), patient.HoTen, "BenhNhan", "BenhNhan", patient.AvatarUrl);
                 return RedirectToLocal(returnUrl);
             }
         }
@@ -128,7 +129,7 @@ public class AuthController : Controller
         var user = users.FirstOrDefault();
         if (user != null)
         {
-            await SignInUserAsync(user.MaNguoiDung.ToString(), user.HoTen, user.Role, "NguoiDung");
+            await SignInUserAsync(user.MaNguoiDung.ToString(), user.HoTen, user.Role, "NguoiDung", user.AvatarUrl);
             return RedirectToLocal(returnUrl);
         }
 
@@ -137,7 +138,7 @@ public class AuthController : Controller
         var patient = patients.FirstOrDefault();
         if (patient != null)
         {
-            await SignInUserAsync(patient.MaBenhNhan.ToString(), patient.HoTen, "BenhNhan", "BenhNhan");
+            await SignInUserAsync(patient.MaBenhNhan.ToString(), patient.HoTen, "BenhNhan", "BenhNhan", patient.AvatarUrl);
             return RedirectToLocal(returnUrl);
         }
 
@@ -153,7 +154,7 @@ public class AuthController : Controller
         };
         await _benhNhanRepository.AddAsync(newPatient);
 
-        await SignInUserAsync(newPatient.MaBenhNhan.ToString(), newPatient.HoTen, "BenhNhan", "BenhNhan");
+        await SignInUserAsync(newPatient.MaBenhNhan.ToString(), newPatient.HoTen, "BenhNhan", "BenhNhan", newPatient.AvatarUrl);
         TempData["SuccessMessage"] = $"Xin chào {newPatient.HoTen}! Tài khoản đã được tạo tự động từ tài khoản {email}.";
         return RedirectToAction("Index", "Patient");
     }
@@ -247,7 +248,7 @@ public class AuthController : Controller
         return View();
     }
 
-    private async Task SignInUserAsync(string userId, string name, string role, string userType)
+    private async Task SignInUserAsync(string userId, string name, string role, string userType, string? avatarUrl = null)
     {
         var claims = new List<Claim>
         {
@@ -256,6 +257,11 @@ public class AuthController : Controller
             new Claim(ClaimTypes.Role, role),
             new Claim("UserType", userType)
         };
+
+        if (!string.IsNullOrEmpty(avatarUrl))
+        {
+            claims.Add(new Claim("AvatarUrl", avatarUrl));
+        }
 
         var claimsIdentity = new ClaimsIdentity(
             claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -282,5 +288,17 @@ public class AuthController : Controller
         {
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
+    }
+
+    [Authorize]
+    public IActionResult Profile()
+    {
+        return View();
+    }
+
+    [Authorize]
+    public IActionResult Settings()
+    {
+        return View();
     }
 }

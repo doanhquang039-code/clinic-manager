@@ -87,8 +87,15 @@
                         <div class="d-flex align-items-center gap-3">
                             <div style="position: relative;">
                                 <div class="admin-avatar"
-                                     style="width: 40px; height: 40px; background: #e2e8f0; color: #475569;">
-                                    <i class="fas fa-user"></i>
+                                     style="width: 40px; height: 40px; background: #e2e8f0; color: #475569; overflow: hidden; border-radius: 50%;">
+                                    @if (!string.IsNullOrEmpty(item.AvatarUrl))
+                                    {
+                                        <img src="@item.AvatarUrl" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-user"></i>
+                                    }
                                 </div>
                                 <span class="position-absolute bottom-0 end-0 rounded-circle border border-white"
                                       style="width: 10px; height: 10px; background-color: @statusDot;"></span>
@@ -111,7 +118,7 @@
                         @item.CreatedAt.ToString("dd/MM/yyyy")
                     </td>
                     <td style="text-align: center;">
-                        <a href="#" class="admin-action-btn" title="Edit" onclick="openEditModal('@item.Id', '@item.Type', '@Html.Raw(item.FullName.Replace("'", "\\'"))', '@item.Role'); return false;">
+                        <a href="#" class="admin-action-btn" title="Edit" onclick="openEditModal('@item.Id', '@item.Type', '@Html.Raw(item.FullName.Replace("'", "\\'"))', '@item.Role', '@item.AvatarUrl'); return false;">
                             <i class="fas fa-edit" style="color: #3b82f6;"></i>
                         </a>
                         <a asp-action="ToggleLockAccount" asp-route-id="@item.Id" asp-route-type="@item.Type" class="admin-action-btn" title="Lock/Unlock" onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái tài khoản này?');">
@@ -180,13 +187,20 @@
         <h5 class="modal-title" id="editAccountModalLabel" style="font-weight: 700; color: var(--admin-text-dark);">Cập nhật tài khoản</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form asp-action="EditAccount" method="post">
+      <form asp-action="EditAccount" method="post" enctype="multipart/form-data">
           <input type="hidden" name="Id" id="edit-id" />
           <input type="hidden" name="Type" id="edit-type" />
           <div class="modal-body">
+              <div class="mb-3 text-center">
+                  <img id="edit-avatar-preview" src="" alt="Preview" class="rounded-circle shadow-sm d-none" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--admin-sidebar-bg); margin-bottom: 10px;">
+              </div>
               <div class="mb-3">
                   <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">HỌ VÀ TÊN</label>
                   <input type="text" name="HoTen" id="edit-name" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">ẢNH ĐẠI DIỆN</label>
+                  <input type="file" name="AvatarFile" id="edit-avatar" class="form-control" accept="image/*" onchange="previewImage(this)">
               </div>
               <div class="mb-3">
                   <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">VAI TRÒ (Chỉ áp dụng cho Nhân sự)</label>
@@ -210,10 +224,20 @@
 
 @section Scripts {
     <script>
-        function openEditModal(id, type, name, role) {
+        function openEditModal(id, type, name, role, avatar) {
             document.getElementById('edit-id').value = id;
             document.getElementById('edit-type').value = type;
             document.getElementById('edit-name').value = name;
+            
+            var preview = document.getElementById('edit-avatar-preview');
+            if (avatar && avatar !== '') {
+                preview.src = avatar;
+                preview.classList.remove('d-none');
+            } else {
+                preview.src = '';
+                preview.classList.add('d-none');
+            }
+            document.getElementById('edit-avatar').value = ''; // Reset file input
             
             var roleSelect = document.getElementById('edit-role');
             if (type === 'BenhNhan') {
@@ -226,8 +250,20 @@
                 else roleSelect.value = role;
             }
             
-            var modal = new bootstrap.Modal(document.getElementById('editAccountModal'));
-            modal.show();
+            var editModal = new bootstrap.Modal(document.getElementById('editAccountModal'));
+            editModal.show();
+        }
+
+        function previewImage(input) {
+            var preview = document.getElementById('edit-avatar-preview');
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('d-none');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
         }
     </script>
 }

@@ -1,0 +1,137 @@
+@{
+    ViewData["Title"] = "Bác sĩ & Chuyên khoa";
+    Layout = "~/Views/Shared/_PortalLayout.cshtml";
+    var doctors = ViewBag.Doctors as IEnumerable<MyMvcApp.Models.NguoiDung>;
+    var specialties = ViewBag.Specialties as IEnumerable<MyMvcApp.Models.ChuyenKhoa>;
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0">
+            <h4 class="mb-0 text-primary"><i class="fas fa-users-medical me-2"></i> Đội ngũ Bác sĩ & Chuyên khoa</h4>
+            <p class="text-muted mt-2">Đội ngũ y bác sĩ giàu kinh nghiệm và các lĩnh vực chuyên môn tại MediCore.</p>
+            
+            <ul class="nav nav-tabs border-bottom-0 mt-4" id="teamTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active fw-bold" id="doctors-tab" data-bs-toggle="tab" data-bs-target="#doctors" type="button" role="tab" style="color: var(--primary-color);">
+                        <i class="fas fa-user-md me-1"></i> Đội ngũ Bác sĩ
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-bold" id="specialties-tab" data-bs-toggle="tab" data-bs-target="#specialties" type="button" role="tab" style="color: var(--primary-color);">
+                        <i class="fas fa-hospital-alt me-1"></i> Các Chuyên Khoa
+                    </button>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card-body">
+            <div class="tab-content" id="teamTabsContent">
+                <!-- Bác sĩ Tab -->
+                <div class="tab-pane fade show active" id="doctors" role="tabpanel">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 pt-3">
+                        @if (doctors != null)
+                        {
+                            foreach (var doctor in doctors)
+                            {
+                                <div class="col">
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-shadow transition">
+                                        <div class="card-body text-center p-4">
+                                            @if (!string.IsNullOrEmpty(doctor.AvatarUrl))
+                                            {
+                                                <img src="@doctor.AvatarUrl" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--primary-color);" />
+                                            }
+                                            else
+                                            {
+                                                <div class="avatar-circle bg-primary text-white d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; font-size: 32px;">
+                                                    <i class="fas fa-user-md"></i>
+                                                </div>
+                                            }
+                                            <h5 class="card-title fw-bold">@doctor.HoTen</h5>
+                                            <p class="card-text text-primary fw-medium mb-1">
+                                                <i class="fas fa-stethoscope me-1"></i> 
+                                                @(doctor.ChuyenKhoa != null ? doctor.ChuyenKhoa.TenChuyenKhoa : "Đa khoa")
+                                            </p>
+                                            <div class="text-muted small mb-3">
+                                                <i class="fas fa-envelope me-1"></i> @doctor.Email<br />
+                                                <i class="fas fa-phone-alt me-1"></i> @(string.IsNullOrEmpty(doctor.SoDienThoai) ? "Đang cập nhật" : doctor.SoDienThoai)
+                                            </div>
+                                            <a asp-controller="Patient" asp-action="BookAppointment" class="btn btn-outline-primary rounded-pill w-100 mt-2">
+                                                Đặt lịch khám ngay
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                    @if (doctors == null || !doctors.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Hệ thống đang cập nhật danh sách bác sĩ.</h5>
+                        </div>
+                    }
+                </div>
+                
+                <!-- Chuyên Khoa Tab -->
+                <div class="tab-pane fade" id="specialties" role="tabpanel">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 pt-3">
+                        @if (specialties != null)
+                        {
+                            foreach (var item in specialties)
+                            {
+                                <div class="col">
+                                    <div class="card h-100 border border-light shadow-sm rounded-4 hover-shadow transition">
+                                        <div class="card-body p-4 d-flex flex-column align-items-center text-center">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; font-size: 28px;">
+                                                <i class="fas fa-heartbeat"></i>
+                                            </div>
+                                            <h5 class="card-title fw-bold text-dark mb-2">@item.TenChuyenKhoa</h5>
+                                            <p class="card-text text-muted small flex-grow-1">
+                                                @(string.IsNullOrEmpty(item.MoTa) ? "Đang cập nhật mô tả chuyên khoa này." : item.MoTa)
+                                            </p>
+                                            <a asp-controller="Patient" asp-action="BookAppointment" class="btn btn-sm btn-outline-primary rounded-pill mt-3 px-4">
+                                                Đặt khám khoa này
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                    @if(specialties == null || !specialties.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-hospital-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Đang cập nhật danh mục chuyên khoa.</h5>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
+    .hover-shadow:hover {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        transform: translateY(-5px);
+    }
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+        padding-bottom: 10px;
+    }
+    .nav-tabs .nav-link.active {
+        border-bottom: 3px solid var(--primary-color);
+        background: transparent;
+    }
+    .nav-tabs .nav-link:hover:not(.active) {
+        border-bottom: 3px solid #cbd5e1;
+    }
+</style>

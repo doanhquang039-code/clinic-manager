@@ -27,7 +27,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddGoogle(googleOptions =>
 {
-    googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? (builder.Configuration["Authentication:Google:ClientId1"] + builder.Configuration["Authentication:Google:ClientId2"]);
     googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? (builder.Configuration["Authentication:Google:ClientSecret1"] + builder.Configuration["Authentication:Google:ClientSecret2"]);
     googleOptions.Events = new OAuthEvents
     {
@@ -40,12 +40,12 @@ builder.Services.AddAuthentication(options =>
 })
 .AddGitHub(githubOptions =>
 {
-    githubOptions.ClientId = builder.Configuration["Authentication:GitHub:ClientId"];
+    githubOptions.ClientId = builder.Configuration["Authentication:GitHub:ClientId"] ?? (builder.Configuration["Authentication:GitHub:ClientId1"] + builder.Configuration["Authentication:GitHub:ClientId2"]);
     githubOptions.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"] ?? (builder.Configuration["Authentication:GitHub:ClientSecret1"] + builder.Configuration["Authentication:GitHub:ClientSecret2"]);
 })
 .AddMicrosoftAccount(microsoftOptions =>
 {
-    microsoftOptions.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"];
+    microsoftOptions.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"] ?? (builder.Configuration["Authentication:Microsoft:ClientId1"] + builder.Configuration["Authentication:Microsoft:ClientId2"]);
     microsoftOptions.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"] ?? (builder.Configuration["Authentication:Microsoft:ClientSecret1"] + builder.Configuration["Authentication:Microsoft:ClientSecret2"]);
     microsoftOptions.Events = new OAuthEvents
     {
@@ -58,6 +58,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddScoped(typeof(MyMvcApp.Repositories.IRepository<>), typeof(MyMvcApp.Repositories.Repository<>));
+builder.Services.AddScoped<MyMvcApp.Services.IImageService, MyMvcApp.Services.CloudinaryService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<MyMvcApp.Models.ApplicationDbContext>(options =>

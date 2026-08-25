@@ -162,11 +162,8 @@
                 <a asp-controller="Patient" asp-action="MedicalRecords" class="admin-nav-item @(currentRoute == "MedicalRecords" ? "active" : "")">
                     <i class="fas fa-notes-medical"></i> Hồ sơ sức khỏe
                 </a>
-                <a asp-controller="Patient" asp-action="Doctors" class="admin-nav-item @(currentRoute == "Doctors" ? "active" : "")">
-                    <i class="fas fa-user-md"></i> Đội ngũ Bác sĩ
-                </a>
-                <a asp-controller="Patient" asp-action="Specialties" class="admin-nav-item @(currentRoute == "Specialties" ? "active" : "")">
-                    <i class="fas fa-hospital-alt"></i> Chuyên khoa
+                <a asp-controller="Patient" asp-action="Team" class="admin-nav-item @(currentRoute == "Team" ? "active" : "")">
+                    <i class="fas fa-user-md"></i> Bác sĩ & Chuyên khoa
                 </a>
                 <a asp-controller="Patient" asp-action="Invoices" class="admin-nav-item @(currentRoute == "Invoices" || currentRoute == "InvoiceDetail" ? "active" : "")">
                     <i class="fas fa-file-invoice-dollar"></i> Hóa đơn & Đơn thuốc
@@ -237,12 +234,57 @@
                         </span>
                     }
                 </a>
-                <div class="d-flex align-items-center gap-2 border-start ps-3 ms-2">
-                    <div class="admin-avatar" style="width: 35px; height: 35px; font-size: 0.8rem;">@initial</div>
-                    <div style="line-height: 1.2;">
-                        <div style="font-weight: 600; font-size: 0.85rem; color: var(--admin-text-dark);">@userName</div>
-                        <div style="font-size: 0.7rem;">@userRole <i class="fas fa-chevron-down ms-1"></i></div>
-                    </div>
+                <div class="dropdown border-start ps-3 ms-2">
+                    @{
+                        string portalAvatarUrl = null;
+                        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int uid))
+                        {
+                            if (userRole == "BenhNhan")
+                            {
+                                portalAvatarUrl = DbContext.BenhNhans.Where(b => b.MaBenhNhan == uid).Select(b => b.AvatarUrl).FirstOrDefault();
+                            }
+                            else
+                            {
+                                portalAvatarUrl = DbContext.NguoiDungs.Where(n => n.MaNguoiDung == uid).Select(n => n.AvatarUrl).FirstOrDefault();
+                            }
+                        }
+                    }
+                    <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" id="portalUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        @if (!string.IsNullOrEmpty(portalAvatarUrl))
+                        {
+                            <img src="@portalAvatarUrl" alt="Avatar" class="rounded-circle" style="width: 35px; height: 35px; object-fit: cover; border: 2px solid var(--primary-color);" />
+                        }
+                        else
+                        {
+                            <div class="admin-avatar" style="width: 35px; height: 35px; font-size: 0.8rem;">@initial</div>
+                        }
+                        <div style="line-height: 1.2; text-align: left;">
+                            <div style="font-weight: 600; font-size: 0.85rem; color: var(--admin-text-dark);">@userName</div>
+                            <div style="font-size: 0.7rem; color: var(--admin-text-muted);">@userRole <i class="fas fa-chevron-down ms-1"></i></div>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="portalUserDropdown" style="border-radius: 12px; margin-top: 10px; min-width: 200px;">
+                        @{
+                            var profileController = User.IsInRole("BenhNhan") ? "Patient" : "Auth";
+                        }
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center" asp-controller="@profileController" asp-action="Profile">
+                                <i class="fas fa-id-card text-muted me-3"></i> Hồ sơ cá nhân
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center" asp-controller="@profileController" asp-action="Settings">
+                                <i class="fas fa-cog text-muted me-3"></i> Cài đặt tài khoản
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center text-danger" asp-controller="Auth" asp-action="Logout">
+                                <i class="fas fa-sign-out-alt me-3"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>

@@ -30,6 +30,7 @@ public class AccountItemViewModel
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public string Type { get; set; } = string.Empty; // "NguoiDung" or "BenhNhan"
+    public string? AvatarUrl { get; set; }
 }
 
 public class DoctorListViewModel

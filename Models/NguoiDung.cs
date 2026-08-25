@@ -32,6 +32,9 @@ public class NguoiDung
 
     public DateTime? NgayTao { get; set; } = DateTime.Now;
 
+    [StringLength(255)]
+    public string? AvatarUrl { get; set; }
+
     // Navigation properties
     [ForeignKey("MaChuyenKhoa")]
     public virtual ChuyenKhoa? ChuyenKhoa { get; set; }

@@ -18,9 +18,16 @@
 <div class="row">
     <div class="col-lg-4 mb-4">
         <div class="admin-card p-4 text-center h-100" style="background:linear-gradient(135deg,#1e293b,#0f172a);color:white;border:none;">
-            <div style="width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:700;margin-bottom:1rem;">
-                @Model.HoTen.Substring(0,1).ToUpper()
-            </div>
+            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+            {
+                <img src="@Model.AvatarUrl" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2);margin-bottom:1rem;" />
+            }
+            else
+            {
+                <div style="width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:700;margin-bottom:1rem;">
+                    @Model.HoTen.Substring(0,1).ToUpper()
+                </div>
+            }
             <h5 style="font-weight:700;margin-bottom:4px;">@Model.HoTen</h5>
             <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:1.5rem;">BN-@Model.MaBenhNhan.ToString("D5")</p>
 
@@ -44,8 +51,15 @@
     <div class="col-lg-8">
         <div class="admin-card p-4">
             <h6 style="font-weight:600;color:#334155;margin-bottom:1.5rem;"><i class="fas fa-edit text-primary me-2"></i>Chỉnh sửa thông tin</h6>
-            <form asp-action="UpdateProfile" method="post">
+            <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
                 <div class="row g-3">
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold" style="font-size:0.85rem;">ẢNH ĐẠI DIỆN</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <img id="avatarPreview" src="@(Model.AvatarUrl ?? "https://via.placeholder.com/80")" alt="Preview" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;" />
+                            <input type="file" name="AvatarFile" id="AvatarFile" class="form-control" accept="image/*" onchange="previewImage(this)" />
+                        </div>
+                    </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" style="font-size:0.85rem;">SỐ ĐIỆN THOẠI</label>
                         <div class="input-group">
@@ -82,3 +96,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MediCore Clinic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --secondary: #10b981;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #334155;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Modern Glass Navbar */
+        .navbar-landing {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            padding: 1rem 0;
+        }
+
+        .navbar-landing .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary) !important;
+            letter-spacing: -0.5px;
+        }
+
+        .navbar-landing .nav-link {
+            font-weight: 500;
+            color: var(--dark) !important;
+            margin: 0 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .navbar-landing .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        .btn-glass {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            font-weight: 600;
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-glass:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-solid {
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-weight: 600;
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-solid:hover {
+            background: var(--primary-dark);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+
+        /* Footer */
+        .footer-landing {
+            background-color: var(--dark);
+            color: #94a3b8;
+            padding: 4rem 0 2rem;
+            margin-top: 5rem;
+        }
+
+        .footer-landing h5 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-landing ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-landing ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-landing ul li a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-landing ul li a:hover {
+            color: var(--primary);
+        }
+
+        .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            margin-right: 0.5rem;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .social-icons a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top navbar-landing">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                <i class="fas fa-heartbeat fs-3 me-2 text-danger"></i> MediCore
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#landingNav" aria-controls="landingNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="landingNav">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#services">Dịch vụ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#doctors">Bác sĩ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#process">Quy trình</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#testimonials">Đánh giá</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#faq">Hỏi đáp</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#news">Tin tức</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">Về chúng tôi</a>
+                    </li>
+                </ul>
+                <div class="d-flex gap-2">
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+                        string dashboardUrl = "/Patient/Index";
+                        if (role == "Admin") dashboardUrl = "/Admin/Index";
+                        else if (role == "Manager") dashboardUrl = "/Manager/Index";
+                        else if (role == "BacSi") dashboardUrl = "/Doctor/Index";
+                        else if (role == "LeTan") dashboardUrl = "/Staff/Index";
+
+                        <a href="@dashboardUrl" class="btn btn-solid"><i class="fas fa-columns me-2"></i> Bảng điều khiển</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Auth" asp-action="Login" class="btn btn-glass">Đăng nhập</a>
+                        <a asp-controller="Auth" asp-action="Register" class="btn btn-solid">Đăng ký</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="footer-landing">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 mb-4">
+                    <a class="d-flex align-items-center text-white text-decoration-none mb-3" href="#">
+                        <i class="fas fa-heartbeat fs-3 me-2 text-danger"></i> 
+                        <span class="fs-4 fw-bold">MediCore</span>
+                    </a>
+                    <p>Hệ thống phòng khám đa khoa tiêu chuẩn quốc tế, mang đến dịch vụ chăm sóc sức khỏe toàn diện và tận tâm cho mọi gia đình.</p>
+                    <div class="social-icons mt-4">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4">
+                    <h5>Liên kết</h5>
+                    <ul>
+                        <li><a href="#">Trang chủ</a></li>
+                        <li><a href="#services">Dịch vụ y tế</a></li>
+                        <li><a href="#doctors">Đội ngũ bác sĩ</a></li>
+                        <li><a href="#about">Về chúng tôi</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h5>Chuyên khoa</h5>
+                    <ul>
+                        <li><a href="#">Nội tổng quát</a></li>
+                        <li><a href="#">Nhi khoa</a></li>
+                        <li><a href="#">Sản phụ khoa</a></li>
+                        <li><a href="#">Tai Mũi Họng</a></li>
+                        <li><a href="#">Răng Hàm Mặt</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h5>Liên hệ</h5>
+                    <ul class="list-unstyled text-light">
+                        <li class="mb-2"><i class="fas fa-user-shield me-2 text-primary"></i> Đặng Quang Doanh - Cloud Engineer/Security</li>
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> 123 Đường Y Tế, Quận 1, TP.HCM</li>
+                        <li class="mb-2"><i class="fas fa-phone-alt me-2 text-primary"></i> Hotline: 1900 1234</li>
+                        <li class="mb-2"><i class="fas fa-envelope me-2 text-primary"></i> contact@medicore.vn</li>
+                        <li><i class="fas fa-clock me-2 text-primary"></i> Giờ làm việc: 7:00 - 20:00 (Thứ 2 - Chủ Nhật)</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.1);" />
+            <div class="text-center text-sm">
+                &copy; 2026 MediCore Clinic. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Shrink navbar on scroll
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                document.querySelector('.navbar-landing').style.padding = '0.5rem 0';
+                document.querySelector('.navbar-landing').style.background = 'rgba(255, 255, 255, 0.95)';
+            } else {
+                document.querySelector('.navbar-landing').style.padding = '1rem 0';
+                document.querySelector('.navbar-landing').style.background = 'rgba(255, 255, 255, 0.9)';
+            }
+        });
+    </script>
+</body>
+</html>

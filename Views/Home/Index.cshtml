@@ -1,8 +1,805 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "_LandingLayout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<style>
+    /* Full width Hero without container constraints */
+    .hero-fullscreen {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+        overflow: hidden;
+        padding-top: 80px; /* Space for navbar */
+    }
+
+    .hero-shape-1 {
+        position: absolute;
+        top: -10%;
+        right: -5%;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        z-index: 1;
+    }
+
+    .hero-shape-2 {
+        position: absolute;
+        bottom: -20%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        color: white;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        letter-spacing: -1.5px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.35rem;
+        font-weight: 300;
+        opacity: 0.9;
+        margin-bottom: 3rem;
+        line-height: 1.6;
+        max-width: 600px;
+    }
+
+    .hero-image-wrapper {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-image-wrapper img {
+        width: 100%;
+        max-width: 600px;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: rotate(3deg);
+        transition: transform 0.5s ease;
+    }
+
+    .hero-image-wrapper:hover img {
+        transform: rotate(0deg) scale(1.02);
+    }
+
+    .hero-floating-card {
+        position: absolute;
+        bottom: -30px;
+        left: -30px;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--dark);
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+
+    /* Section Spacing */
+    .section-padding {
+        padding: 6rem 0;
+    }
+
+    /* Features Section */
+    .section-title {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .section-title h2 {
+        font-weight: 800;
+        color: var(--dark);
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .section-title p {
+        color: var(--gray);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 24px;
+        padding: 2.5rem 2rem;
+        transition: all 0.4s ease;
+        border: 1px solid #f1f5f9;
+        height: 100%;
+        position: relative;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(14, 165, 233, 0.1);
+        border-color: rgba(14, 165, 233, 0.2);
+    }
+
+    .feature-icon-wrapper {
+        width: 70px;
+        height: 70px;
+        background: rgba(14, 165, 233, 0.1);
+        color: var(--primary);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon-wrapper {
+        background: var(--primary);
+        color: white;
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .feature-card h4 {
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1rem;
+    }
+
+    .feature-card p {
+        color: var(--gray);
+        margin-bottom: 0;
+        line-height: 1.6;
+    }
+
+    /* Stats Section */
+    .stats-section {
+        background: var(--light);
+    }
+
+    .stat-box {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .stat-number {
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        line-height: 1;
+    }
+
+    .stat-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+        color: white;
+        border-radius: 30px;
+        margin: 4rem 1rem;
+        padding: 5rem 2rem;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Animations */
+    .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    }
+
+    .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Process Section */
+    .step-box {
+        text-align: center;
+        padding: 2rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .step-number {
+        width: 60px;
+        height: 60px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Testimonials */
+    .testimonial-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        height: 100%;
+        position: relative;
+    }
+
+    .testimonial-card::before {
+        content: '\201C';
+        font-size: 6rem;
+        color: rgba(14, 165, 233, 0.1);
+        position: absolute;
+        top: 10px;
+        left: 20px;
+        font-family: serif;
+        line-height: 1;
+    }
+
+    /* FAQ */
+    .faq-accordion .accordion-item {
+        border: none;
+        margin-bottom: 1rem;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .faq-accordion .accordion-button {
+        font-weight: 600;
+        color: var(--dark);
+        padding: 1.25rem 1.5rem;
+        background: white;
+    }
+
+    .faq-accordion .accordion-button:not(.collapsed) {
+        color: var(--primary);
+        background: #f8fafc;
+        box-shadow: none;
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-fullscreen">
+    <div class="hero-shape-1"></div>
+    <div class="hero-shape-2"></div>
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0 hero-content reveal active">
+                <span class="badge bg-white text-primary mb-3 px-3 py-2 rounded-pill fw-bold" style="font-size: 0.9rem;">
+                    <i class="fas fa-star text-warning me-1"></i> Phòng khám tốt nhất 2026
+                </span>
+                <h1 class="hero-title">Chăm Sóc Sức Khỏe Toàn Diện Cho Bạn</h1>
+                <p class="hero-subtitle">
+                    Hệ thống quản lý phòng khám hiện đại với đội ngũ y bác sĩ hàng đầu. Đặt lịch khám dễ dàng và trải nghiệm dịch vụ y tế chuẩn quốc tế ngay hôm nay.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+                        string dashboardUrl = "/Patient/Index";
+                        if (role == "Admin") dashboardUrl = "/Admin/Index";
+                        else if (role == "Manager") dashboardUrl = "/Manager/Index";
+                        else if (role == "BacSi") dashboardUrl = "/Doctor/Index";
+                        else if (role == "LeTan") dashboardUrl = "/Staff/Index";
+
+                        <a href="@dashboardUrl" class="btn-solid btn-lg" style="text-decoration: none;">
+                            <i class="fas fa-columns me-2"></i> Bảng điều khiển
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Auth" asp-action="Login" class="btn-solid btn-lg" style="text-decoration: none; padding: 1rem 2.5rem; font-size: 1.1rem;">
+                            <i class="fas fa-calendar-check me-2"></i> Đặt Lịch Ngay
+                        </a>
+                        <a href="#services" class="btn-glass btn-lg" style="text-decoration: none; padding: 1rem 2.5rem; font-size: 1.1rem; color: white; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                            Tìm hiểu thêm
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-5 offset-lg-1 d-none d-lg-block reveal active" style="transition-delay: 0.2s;">
+                <div class="hero-image-wrapper">
+                    <!-- Placeholder using Unsplash source for medical theme -->
+                    <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Doctor smiling">
+                    <div class="hero-floating-card">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold fs-5">10,000+</div>
+                            <div class="text-muted small">Bệnh nhân hài lòng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="section-padding">
+    <div class="container">
+        <div class="section-title reveal">
+            <h2>Chuyên Khoa & Dịch Vụ</h2>
+            <p>Chúng tôi cung cấp đa dạng các chuyên khoa và dịch vụ khám chữa bệnh chất lượng cao.</p>
+        </div>
+        <div class="row g-4">
+            @{
+                var specialties = ViewBag.Specialties as IEnumerable<MyMvcApp.Models.ChuyenKhoa>;
+                int delay = 0;
+            }
+            @if (specialties != null && specialties.Any())
+            {
+                foreach (var spec in specialties)
+                {
+                    <div class="col-lg-4 col-md-6 reveal" style="transition-delay: @(delay)s;">
+                        <div class="feature-card">
+                            <div class="feature-icon-wrapper">
+                                <i class="fas fa-stethoscope"></i>
+                            </div>
+                            <h4>@spec.TenChuyenKhoa</h4>
+                            <p>@spec.MoTa</p>
+                        </div>
+                    </div>
+                    delay = (delay >= 2) ? 0 : delay + 1;
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center text-muted">
+                    <p>Đang cập nhật danh sách chuyên khoa...</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Doctors Section -->
+<section id="doctors" class="section-padding bg-light">
+    <div class="container">
+        <div class="section-title reveal">
+            <h2>Đội Ngũ Bác Sĩ Nổi Bật</h2>
+            <p>Quy tụ các bác sĩ giỏi, nhiều năm kinh nghiệm từ các bệnh viện lớn, tận tâm vì sức khỏe người bệnh.</p>
+        </div>
+        <div class="row g-4">
+            @{
+                var doctors = ViewBag.Doctors as IEnumerable<MyMvcApp.Models.NguoiDung>;
+                int docDelay = 0;
+            }
+            @if (doctors != null && doctors.Any())
+            {
+                foreach (var doc in doctors)
+                {
+                    <div class="col-lg-3 col-md-6 reveal" style="transition-delay: @(docDelay)s;">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px; overflow: hidden; transition: transform 0.3s;">
+                            <div style="height: 250px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+                                @if (!string.IsNullOrEmpty(doc.AvatarUrl))
+                                {
+                                    <img src="@doc.AvatarUrl" alt="Bác sĩ @doc.HoTen" style="width: 100%; height: 100%; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <i class="fas fa-user-md" style="font-size: 5rem; color: #cbd5e1;"></i>
+                                }
+                            </div>
+                            <div class="card-body text-center p-4">
+                                <h5 class="fw-bold mb-1" style="color: var(--dark);">BS. @doc.HoTen</h5>
+                                <p class="text-primary fw-medium mb-3">@(doc.ChuyenKhoa?.TenChuyenKhoa ?? "Đa khoa")</p>
+                                <a asp-controller="Auth" asp-action="Login" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    <i class="fas fa-calendar-check me-1"></i> Đặt lịch
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    docDelay = (docDelay >= 3) ? 0 : docDelay + 1;
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center text-muted">
+                    <p>Đang cập nhật danh sách bác sĩ...</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Process Section -->
+<section id="process" class="section-padding">
+    <div class="container">
+        <div class="section-title reveal">
+            <h2>Quy Trình Khám Bệnh Đơn Giản</h2>
+            <p>Trải nghiệm dịch vụ y tế thông minh, nhanh chóng và không phải chờ đợi với 3 bước cơ bản.</p>
+        </div>
+        <div class="row position-relative g-4">
+            <!-- Connecting line for desktop -->
+            <div class="d-none d-lg-block position-absolute top-50 start-0 w-100" style="height: 2px; background: #e2e8f0; z-index: 1; transform: translateY(-50px);"></div>
+            
+            <div class="col-lg-4 reveal">
+                <div class="step-box">
+                    <div class="step-number">1</div>
+                    <h4 class="fw-bold mb-3">Đặt Lịch Trực Tuyến</h4>
+                    <p class="text-muted">Chọn bác sĩ, chuyên khoa và thời gian khám phù hợp ngay trên website hoặc điện thoại.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 reveal" style="transition-delay: 0.1s;">
+                <div class="step-box">
+                    <div class="step-number">2</div>
+                    <h4 class="fw-bold mb-3">Khám Tại Phòng Khám</h4>
+                    <p class="text-muted">Đến phòng khám theo giờ đã hẹn, không cần xếp hàng chờ đợi, gặp trực tiếp bác sĩ chuyên khoa.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 reveal" style="transition-delay: 0.2s;">
+                <div class="step-box">
+                    <div class="step-number">3</div>
+                    <h4 class="fw-bold mb-3">Nhận Kết Quả & Đơn Thuốc</h4>
+                    <p class="text-muted">Toàn bộ hồ sơ bệnh án, kết quả xét nghiệm và đơn thuốc được lưu trữ an toàn trên tài khoản của bạn.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section id="testimonials" class="section-padding bg-light">
+    <div class="container">
+        <div class="section-title reveal">
+            <h2>Khách Hàng Nói Gì Về Chúng Tôi</h2>
+            <p>Sự hài lòng của khách hàng là thước đo chính xác nhất cho chất lượng dịch vụ của MediCore.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 reveal">
+                <div class="testimonial-card">
+                    <div class="mb-4">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="fst-italic mb-4" style="color: #475569; position: relative; z-index: 2;">
+                        "Dịch vụ rất tuyệt vời! Tôi ấn tượng nhất với tính năng đặt lịch online, khi đến chỉ việc vào khám luôn không cần phải chầu chực xếp hàng lấy số như các bệnh viện khác."
+                    </p>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style="width: 50px; height: 50px;">
+                            TA
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Trần Thế Anh</h6>
+                            <small class="text-muted">Bệnh nhân chuyên khoa Nội</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 reveal" style="transition-delay: 0.1s;">
+                <div class="testimonial-card">
+                    <div class="mb-4">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="fst-italic mb-4" style="color: #475569; position: relative; z-index: 2;">
+                        "Bác sĩ tư vấn rất tận tâm và chi tiết. Phòng khám sạch sẽ, cơ sở vật chất cực kỳ hiện đại. Đặc biệt là mình có thể xem lại hồ sơ bệnh án trực tuyến rất tiện lợi."
+                    </p>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style="width: 50px; height: 50px;">
+                            HM
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Hoàng My</h6>
+                            <small class="text-muted">Bệnh nhân Nha khoa</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 reveal" style="transition-delay: 0.2s;">
+                <div class="testimonial-card">
+                    <div class="mb-4">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star-half-alt text-warning"></i>
+                    </div>
+                    <p class="fst-italic mb-4" style="color: #475569; position: relative; z-index: 2;">
+                        "Tôi cho con đi khám nhi ở đây rất ưng ý. Không gian thoải mái nên bé không bị sợ như ở bệnh viện lớn. Các cô y tá và lễ tân cũng cực kỳ nhẹ nhàng, thân thiện."
+                    </p>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style="width: 50px; height: 50px;">
+                            PL
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Phạm Phương Linh</h6>
+                            <small class="text-muted">Bệnh nhân Khoa Nhi</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section id="faq" class="section-padding">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-5 mb-5 mb-lg-0 reveal">
+                <h2 class="fw-bold mb-4" style="font-size: 2.5rem; color: var(--dark);">Câu Hỏi<br/>Thường Gặp</h2>
+                <p class="text-muted mb-4 fs-5">Mọi thắc mắc của bạn về quy trình khám chữa bệnh tại MediCore sẽ được giải đáp tại đây.</p>
+                <img src="https://images.unsplash.com/photo-1551076805-e1869033e561?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="FAQ" class="img-fluid rounded-4 shadow" />
+            </div>
+            <div class="col-lg-7 reveal" style="transition-delay: 0.2s;">
+                <div class="accordion faq-accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Tôi có thể đặt lịch khám trước bao nhiêu ngày?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted">
+                                Bạn có thể đặt lịch khám trước tối đa 30 ngày trên hệ thống. Chúng tôi khuyến khích đặt lịch trước ít nhất 1 ngày để phòng khám có thể sắp xếp bác sĩ và thời gian tốt nhất cho bạn.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Phòng khám có áp dụng Bảo hiểm Y tế không?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted">
+                                Hiện tại MediCore có chấp nhận thanh toán qua thẻ BHYT nhà nước và liên kết bảo lãnh viện phí trực tiếp với hơn 20 hãng bảo hiểm nhân thọ, phi nhân thọ trong và ngoài nước.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Làm sao để xem kết quả xét nghiệm?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted">
+                                Sau khi khám và có kết quả, mọi thông tin về chẩn đoán, toa thuốc và kết quả xét nghiệm sẽ được đồng bộ ngay lập tức vào hồ sơ điện tử của bạn. Bạn chỉ cần đăng nhập tài khoản là có thể xem bất cứ lúc nào.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Lịch làm việc của phòng khám như thế nào?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted">
+                                MediCore phục vụ quý khách hàng xuyên suốt từ 7:00 sáng đến 20:00 tối tất cả các ngày trong tuần (bao gồm cả Thứ 7 và Chủ Nhật). Khoa Cấp Cứu hoạt động 24/7.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- About Us Section -->
+<section id="about" class="section-padding bg-white">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 reveal">
+                <div class="position-relative">
+                    <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Hospital building" class="img-fluid rounded-4 shadow-lg" />
+                    <div class="position-absolute bottom-0 end-0 bg-white p-4 rounded-4 shadow-lg" style="transform: translate(10%, 20%); max-width: 250px;">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-award fs-1 text-primary me-3"></i>
+                            <h4 class="fw-bold mb-0">Top 1</h4>
+                        </div>
+                        <p class="text-muted mb-0 small">Phòng khám đa khoa tốt nhất năm 2026 do Bộ Y Tế bình chọn</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 reveal" style="transition-delay: 0.2s;">
+                <span class="badge bg-primary text-white mb-3 px-3 py-2 rounded-pill fw-bold">Về Chúng Tôi</span>
+                <h2 class="fw-bold mb-4" style="font-size: 2.5rem;">Tiên Phong Trải Nghiệm Y Tế Số Hóa</h2>
+                <p class="text-muted fs-5 mb-4">MediCore tự hào là đơn vị tiên phong trong việc áp dụng công nghệ vào quy trình khám chữa bệnh. Chúng tôi mang đến cho bệnh nhân trải nghiệm y tế hoàn toàn khác biệt: nhanh chóng, minh bạch và cá nhân hóa.</p>
+                
+                <div class="d-flex mb-4">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 50px; height: 50px;">
+                        <i class="fas fa-user-md fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Đội Ngũ Chuyên Gia Hàng Đầu</h5>
+                        <p class="text-muted mb-0">Hơn 50 bác sĩ chuyên khoa I, II và tiến sĩ từ các bệnh viện lớn trực tiếp thăm khám.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-4">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 50px; height: 50px;">
+                        <i class="fas fa-hospital fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Cơ Sở Vật Chất Chuẩn 5 Sao</h5>
+                        <p class="text-muted mb-0">Không gian thiết kế sang trọng, hiện đại, khử khuẩn 100% mang lại cảm giác thoải mái như ở khách sạn.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-4">
+                    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 50px; height: 50px;">
+                        <i class="fas fa-microchip fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold">Trang Thiết Bị Tối Tân</h5>
+                        <p class="text-muted mb-0">Đầu tư hàng triệu đô cho hệ thống xét nghiệm và chẩn đoán hình ảnh nhập khẩu trực tiếp từ Châu Âu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section id="stats" class="section-padding stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 col-6 reveal">
+                <div class="stat-box">
+                    <div class="stat-number">15+</div>
+                    <div class="stat-text">Năm kinh nghiệm</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 reveal" style="transition-delay: 0.1s;">
+                <div class="stat-box">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-text">Bác sĩ chuyên khoa</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 reveal" style="transition-delay: 0.2s;">
+                <div class="stat-box">
+                    <div class="stat-number">12</div>
+                    <div class="stat-text">Phòng ban y tế</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 reveal" style="transition-delay: 0.3s;">
+                <div class="stat-box">
+                    <div class="stat-number">99%</div>
+                    <div class="stat-text">Khách hàng hài lòng</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- News Section -->
+<section id="news" class="section-padding bg-light">
+    <div class="container">
+        <div class="section-title reveal">
+            <h2>Tin Tức & Hoạt Động</h2>
+            <p>Cập nhật những thông tin y khoa mới nhất và các hoạt động cộng đồng từ MediCore.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 reveal">
+                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1584982751601-97dcc096659c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="card-img-top" alt="News 1" style="height: 200px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span><i class="far fa-calendar-alt me-1"></i> 25/08/2026</span>
+                            <span><i class="far fa-folder-open me-1"></i> Tin y tế</span>
+                        </div>
+                        <h5 class="fw-bold mb-3"><a href="#" class="text-dark text-decoration-none">Cảnh báo dịch cúm mùa đang có dấu hiệu bùng phát mạnh</a></h5>
+                        <p class="text-muted mb-0">Các bác sĩ MediCore khuyến cáo người dân nên chủ động tiêm phòng vaccine và duy trì lối sống lành mạnh...</p>
+                    </div>
+                    <div class="card-footer bg-white border-0 p-4 pt-0">
+                        <a href="#" class="text-primary fw-bold text-decoration-none">Đọc tiếp <i class="fas fa-arrow-right ms-1 text-sm"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 reveal" style="transition-delay: 0.1s;">
+                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="card-img-top" alt="News 2" style="height: 200px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span><i class="far fa-calendar-alt me-1"></i> 22/08/2026</span>
+                            <span><i class="far fa-folder-open me-1"></i> Sự kiện</span>
+                        </div>
+                        <h5 class="fw-bold mb-3"><a href="#" class="text-dark text-decoration-none">MediCore chuyển giao thành công công nghệ Laser thế hệ mới</a></h5>
+                        <p class="text-muted mb-0">Hệ thống máy Laser siêu xung Pico hiện đại nhất đã được lắp đặt thành công tại khoa Da Liễu...</p>
+                    </div>
+                    <div class="card-footer bg-white border-0 p-4 pt-0">
+                        <a href="#" class="text-primary fw-bold text-decoration-none">Đọc tiếp <i class="fas fa-arrow-right ms-1 text-sm"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 reveal" style="transition-delay: 0.2s;">
+                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="card-img-top" alt="News 3" style="height: 200px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span><i class="far fa-calendar-alt me-1"></i> 18/08/2026</span>
+                            <span><i class="far fa-folder-open me-1"></i> Khuyến mãi</span>
+                        </div>
+                        <h5 class="fw-bold mb-3"><a href="#" class="text-dark text-decoration-none">Chương trình khám sức khỏe doanh nghiệp giảm đến 30%</a></h5>
+                        <p class="text-muted mb-0">Gói khám tổng quát cao cấp dành riêng cho các doanh nghiệp vừa và nhỏ trong quý 3 năm nay...</p>
+                    </div>
+                    <div class="card-footer bg-white border-0 p-4 pt-0">
+                        <a href="#" class="text-primary fw-bold text-decoration-none">Đọc tiếp <i class="fas fa-arrow-right ms-1 text-sm"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+@if (!User.Identity!.IsAuthenticated)
+{
+    <section class="container mb-5 reveal">
+        <div class="cta-section">
+            <h2 class="fw-bold mb-4" style="font-size: 2.5rem;">Sẵn Sàng Chăm Sóc Sức Khỏe Của Bạn?</h2>
+            <p class="mb-5 fs-5" style="color: #cbd5e1; max-width: 700px; margin: 0 auto;">Tạo ngay hồ sơ y tế miễn phí và trải nghiệm hệ thống đặt lịch hẹn thông minh, không cần phải chờ đợi.</p>
+            <a asp-controller="Auth" asp-action="Register" class="btn-solid btn-lg" style="text-decoration: none; padding: 1.2rem 3rem; font-size: 1.2rem;">
+                Đăng Ký Tài Khoản Ngay <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </section>
+}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const reveals = document.querySelectorAll(".reveal");
+
+        function revealOnScroll() {
+            for (let i = 0; i < reveals.length; i++) {
+                const windowHeight = window.innerHeight;
+                const elementTop = reveals[i].getBoundingClientRect().top;
+                const elementVisible = 100;
+
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+
+        window.addEventListener("scroll", revealOnScroll);
+        // Trigger once on load
+        revealOnScroll();
+    });
+</script>

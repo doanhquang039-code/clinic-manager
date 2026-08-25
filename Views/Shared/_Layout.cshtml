@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - MyMvcApp</title>
+    @inject MyMvcApp.Models.ApplicationDbContext DbContext
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MyMvcApp.styles.css" asp-append-version="true" />
@@ -69,18 +70,59 @@
                                         <ul class="navbar-nav">
                                             @if (User.Identity != null && User.Identity.IsAuthenticated)
                                             {
-                                                var role = User.Claims.FirstOrDefault(c => c.Type ==
-                                            System.Security.Claims.ClaimTypes.Role)?.Value;
-                                                <li class="nav-item d-flex align-items-center me-3">
-                                                    <span class="text-dark fw-bold"><i class="fas fa-user-circle text-primary"></i> Xin chào,
-                                                        @User.Identity.Name!</span>
-                                                        <span class="badge bg-info ms-2">@role</span>
-                                                    </li>
-                                                    <li class="nav-item">
-                                                        <a class="btn btn-outline-danger btn-sm mt-1" asp-controller="Auth" asp-action="Logout"><i
-                                                            class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-                                                        </li>
+                                                var role = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+                                                
+                                                string avatarUrl = null;
+                                                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out int uid))
+                                                {
+                                                    if (role == "BenhNhan")
+                                                    {
+                                                        avatarUrl = DbContext.BenhNhans.Where(b => b.MaBenhNhan == uid).Select(b => b.AvatarUrl).FirstOrDefault();
                                                     }
+                                                    else
+                                                    {
+                                                        avatarUrl = DbContext.NguoiDungs.Where(n => n.MaNguoiDung == uid).Select(n => n.AvatarUrl).FirstOrDefault();
+                                                    }
+                                                }
+                                                <li class="nav-item dropdown me-2 mt-1">
+                                                    <a class="nav-link dropdown-toggle d-flex align-items-center text-dark text-decoration-none" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        @if (!string.IsNullOrEmpty(avatarUrl))
+                                                        {
+                                                            <img src="@avatarUrl" alt="Avatar" class="rounded-circle me-2" style="width: 35px; height: 35px; object-fit: cover; border: 2px solid var(--primary-color);" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fas fa-user-circle text-primary fs-3 me-2"></i>
+                                                        }
+                                                        <div class="d-flex flex-column text-start lh-1">
+                                                            <span class="fw-bold" style="font-size: 0.95rem;">@User.Identity.Name</span>
+                                                            <span class="text-muted" style="font-size: 0.75rem;">@role</span>
+                                                        </div>
+                                                    </a>
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown" style="border-radius: 12px; margin-top: 10px;">
+                                                        @{
+                                                            var profileController = User.IsInRole("BenhNhan") ? "Patient" : "Auth";
+                                                        }
+                                                        <li>
+                                                            <a class="dropdown-item py-2 d-flex align-items-center" asp-controller="@profileController" asp-action="Profile">
+                                                                <i class="fas fa-id-card text-muted me-3"></i> Hồ sơ cá nhân
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item py-2 d-flex align-items-center" asp-controller="@profileController" asp-action="Settings">
+                                                                <i class="fas fa-cog text-muted me-3"></i> Cài đặt tài khoản
+                                                            </a>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <a class="dropdown-item py-2 d-flex align-items-center text-danger" asp-controller="Auth" asp-action="Logout">
+                                                                <i class="fas fa-sign-out-alt me-3"></i> Đăng xuất
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            }
                         else
                                                     {
                                                         <li class="nav-item me-2">

@@ -1,16 +1,19 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MyMvcApp.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MyMvcApp.Controllers;
 
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly ApplicationDbContext _context;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
     {
         _logger = logger;
+        _context = context;
     }
 
     public IActionResult Index()
@@ -33,6 +36,19 @@ public class HomeController : Controller
             return RedirectToAction("Index", "Patient"); // Fallback
         }
         
+        var doctors = _context.NguoiDungs
+            .Include(n => n.ChuyenKhoa)
+            .Where(n => n.Role == "BacSi" && n.TrangThai == true)
+            .Take(4)
+            .ToList();
+            
+        var specialties = _context.ChuyenKhoas
+            .Take(6)
+            .ToList();
+            
+        ViewBag.Doctors = doctors;
+        ViewBag.Specialties = specialties;
+
         return View();
     }
 

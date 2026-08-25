@@ -40,6 +40,9 @@ public class BenhNhan
 
     public DateTime? NgayTao { get; set; } = DateTime.Now;
 
+    [StringLength(255)]
+    public string? AvatarUrl { get; set; }
+
     // Navigation properties
     public virtual ICollection<LichKham> LichKhams { get; set; } = new List<LichKham>();
     public virtual ICollection<PhieuKham> PhieuKhams { get; set; } = new List<PhieuKham>();

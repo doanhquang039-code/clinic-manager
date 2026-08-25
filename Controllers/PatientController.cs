@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MyMvcApp.Models;
+using MyMvcApp.Services;
 
 namespace MyMvcApp.Controllers;
 
@@ -11,10 +12,12 @@ namespace MyMvcApp.Controllers;
 public class PatientController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IImageService _imageService;
 
-    public PatientController(ApplicationDbContext context)
+    public PatientController(ApplicationDbContext context, IImageService imageService)
     {
         _context = context;
+        _imageService = imageService;
     }
 
     private int GetCurrentPatientId()
@@ -184,11 +187,28 @@ public class PatientController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateProfile(BenhNhan model)
+    public async Task<IActionResult> UpdateProfile(BenhNhan model, IFormFile? AvatarFile)
     {
         var patientId = GetCurrentPatientId();
         var patient = await _context.BenhNhans.FindAsync(patientId);
         if (patient == null) return RedirectToAction(nameof(Index));
+
+        if (AvatarFile != null)
+        {
+            try
+            {
+                var uploadedUrl = await _imageService.UploadImageAsync(AvatarFile);
+                if (uploadedUrl != null)
+                {
+                    patient.AvatarUrl = uploadedUrl;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi upload ảnh: {ex.Message}";
+                return RedirectToAction(nameof(Profile));
+            }
+        }
 
         // Chỉ cập nhật các trường cho phép
         patient.SoDienThoai = model.SoDienThoai;
@@ -237,24 +257,23 @@ public class PatientController : Controller
         return View();
     }
 
-    // ============ ĐỘI NGŨ BÁC SĨ ============
-    public async Task<IActionResult> Doctors()
+    // ============ ĐỘI NGŨ BÁC SĨ VÀ CHUYÊN KHOA ============
+    public async Task<IActionResult> Team()
     {
         var doctors = await _context.NguoiDungs
             .Include(n => n.ChuyenKhoa)
             .Where(n => n.Role == "BacSi" && n.TrangThai == true)
             .OrderBy(n => n.HoTen)
             .ToListAsync();
-        return View(doctors);
-    }
-
-    // ============ CHUYÊN KHOA ============
-    public async Task<IActionResult> Specialties()
-    {
+            
         var specialties = await _context.ChuyenKhoas
             .OrderBy(c => c.TenChuyenKhoa)
             .ToListAsync();
-        return View(specialties);
+            
+        ViewBag.Doctors = doctors;
+        ViewBag.Specialties = specialties;
+        
+        return View();
     }
 
     // ============ HÓA ĐƠN VÀ ĐƠN THUỐC ============
