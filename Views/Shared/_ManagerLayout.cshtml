@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ClinicCare Pro</title>
+    @inject MyMvcApp.Models.ApplicationDbContext DbContext
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    @await RenderSectionAsync("Styles", required: false)
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        body { margin: 0; background: #f5f6fa; color: #1a1d23; }
+
+        /* ===== SIDEBAR ===== */
+        .mgr-sidebar {
+            position: fixed; top: 0; left: 0; width: 220px; height: 100vh;
+            background: #1a237e; display: flex; flex-direction: column;
+            z-index: 100; transition: width 0.25s;
+        }
+        .mgr-logo {
+            padding: 20px 20px 16px;
+            display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .mgr-logo-icon {
+            width: 38px; height: 38px; background: #1565C0;
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; font-weight: 800; color: white; font-size: 1rem;
+        }
+        .mgr-logo-text { color: white; }
+        .mgr-logo-text .title { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
+        .mgr-logo-text .sub { font-size: 0.68rem; color: rgba(255,255,255,0.5); }
+
+        .mgr-nav { flex: 1; overflow-y: auto; padding: 12px 10px; }
+        .mgr-nav-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 14px; border-radius: 9px; cursor: pointer;
+            color: rgba(255,255,255,0.65); font-size: 0.875rem; font-weight: 500;
+            text-decoration: none; margin-bottom: 2px; transition: all 0.18s;
+        }
+        .mgr-nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .mgr-nav-item.active { background: #1565C0; color: white; font-weight: 600; }
+        .mgr-nav-item i { width: 18px; text-align: center; font-size: 0.95rem; }
+        .mgr-nav-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 14px; }
+
+        .mgr-sidebar-bottom {
+            padding: 12px 10px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .mgr-user-card {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 9px; margin-bottom: 4px;
+        }
+        .mgr-user-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #1565C0; color: white; display: flex;
+            align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+        }
+        .mgr-user-name { font-size: 0.82rem; font-weight: 600; color: white; }
+        .mgr-user-role { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
+
+        .mgr-collapse-btn {
+            position: absolute; right: -12px; top: 50%;
+            transform: translateY(-50%); width: 24px; height: 24px;
+            background: white; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer;
+            color: #1a237e; font-size: 0.65rem; border: none;
+        }
+
+        /* ===== MAIN ===== */
+        .mgr-main {
+            margin-left: 220px; min-height: 100vh;
+            display: flex; flex-direction: column; transition: margin-left 0.25s;
+        }
+
+        /* ===== TOPBAR ===== */
+        .mgr-topbar {
+            position: sticky; top: 0; z-index: 90;
+            background: white; border-bottom: 1px solid #eef0f4;
+            padding: 0 28px; height: 60px;
+            display: flex; align-items: center; gap: 20px;
+        }
+        .mgr-date {
+            font-size: 0.82rem; color: #64748b; white-space: nowrap;
+        }
+        .mgr-search {
+            flex: 1; max-width: 420px; position: relative;
+        }
+        .mgr-search input {
+            width: 100%; padding: 8px 14px 8px 38px;
+            border: 1px solid #e9edf2; border-radius: 8px;
+            font-size: 0.85rem; color: #475569; background: #f8fafc;
+            outline: none; transition: border 0.2s;
+        }
+        .mgr-search input:focus { border-color: #1a237e; background: white; }
+        .mgr-search i {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            color: #94a3b8; font-size: 0.85rem;
+        }
+        .mgr-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+        .mgr-notif-btn {
+            position: relative; width: 38px; height: 38px; border-radius: 50%;
+            background: #f1f5f9; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; color: #475569;
+            text-decoration: none; transition: background 0.2s;
+        }
+        .mgr-notif-btn:hover { background: #e2e8f0; color: #1a237e; }
+        .mgr-notif-badge {
+            position: absolute; top: -2px; right: -2px; width: 18px; height: 18px;
+            background: #ef4444; border-radius: 50%; font-size: 0.65rem;
+            font-weight: 700; color: white; display: flex; align-items: center;
+            justify-content: center; border: 2px solid white;
+        }
+        .mgr-user-btn {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 10px; border-radius: 10px; cursor: pointer;
+            text-decoration: none; color: #1a1d23;
+        }
+        .mgr-user-btn:hover { background: #f8fafc; }
+        .mgr-topbar-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: #1565C0; color: white; font-weight: 700;
+            font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
+        }
+        .mgr-topbar-name { font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
+        .mgr-topbar-role { font-size: 0.7rem; color: #64748b; }
+
+        /* ===== CONTENT ===== */
+        .mgr-content { flex: 1; padding: 28px; }
+
+        /* ===== STAT CARDS ===== */
+        .mgr-stat-card {
+            background: white; border-radius: 14px; padding: 20px 22px;
+            border: 1px solid #eef0f4; display: flex; align-items: flex-start;
+            gap: 16px; transition: box-shadow 0.2s;
+        }
+        .mgr-stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+        .mgr-stat-icon {
+            width: 44px; height: 44px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0;
+        }
+        .mgr-stat-label { font-size: 0.72rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+        .mgr-stat-value { font-size: 1.65rem; font-weight: 800; color: #1a1d23; line-height: 1.1; }
+        .mgr-stat-sub { font-size: 0.75rem; margin-top: 3px; }
+        .mgr-stat-trend-up { color: #22c55e; }
+        .mgr-stat-trend-neutral { color: #64748b; }
+        .mgr-stat-trend-warn { color: #f59e0b; }
+
+        /* ===== TABLE ===== */
+        .mgr-table-container {
+            background: white; border-radius: 14px; border: 1px solid #eef0f4;
+            overflow: hidden;
+        }
+        .mgr-table-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px; border-bottom: 1px solid #eef0f4; flex-wrap: wrap;
+        }
+        table.mgr-table { width: 100%; border-collapse: collapse; }
+        table.mgr-table thead tr { background: #f8fafc; }
+        table.mgr-table thead th {
+            padding: 11px 16px; font-size: 0.72rem; font-weight: 700;
+            color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1px solid #eef0f4; white-space: nowrap;
+        }
+        table.mgr-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.12s; }
+        table.mgr-table tbody tr:last-child { border-bottom: none; }
+        table.mgr-table tbody tr:hover { background: #f8fafc; }
+        table.mgr-table td { padding: 13px 16px; font-size: 0.875rem; vertical-align: middle; }
+
+        /* ===== BADGES ===== */
+        .role-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 5px;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em;
+        }
+        .rb-doctor { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .rb-manager { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .rb-cashier { background: #fdf4ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+        .rb-staff { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+
+        .status-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 500; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+        .dot-green { background: #22c55e; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-red { background: #ef4444; }
+
+        /* ===== ACTION ICONS ===== */
+        .action-btn {
+            width: 32px; height: 32px; border-radius: 7px; border: 1px solid #e2e8f0;
+            background: white; display: inline-flex; align-items: center;
+            justify-content: center; cursor: pointer; color: #64748b;
+            font-size: 0.82rem; transition: all 0.15s; text-decoration: none;
+        }
+        .action-btn:hover { border-color: #1a237e; color: #1a237e; background: #eef2ff; }
+        .action-btn.danger:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+
+        /* ===== FILTER TABS ===== */
+        .mgr-tabs { display: flex; gap: 4px; }
+        .mgr-tab {
+            padding: 7px 16px; border-radius: 8px; font-size: 0.82rem;
+            font-weight: 500; cursor: pointer; text-decoration: none;
+            color: #64748b; background: transparent; border: none;
+            transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .mgr-tab .count {
+            background: #e2e8f0; color: #475569; border-radius: 20px;
+            padding: 1px 7px; font-size: 0.7rem; font-weight: 700;
+        }
+        .mgr-tab:hover { background: #f1f5f9; color: #1a237e; }
+        .mgr-tab.active { background: #1a237e; color: white; font-weight: 600; }
+        .mgr-tab.active .count { background: rgba(255,255,255,0.25); color: white; }
+
+        /* ===== SEARCH INPUT ===== */
+        .mgr-input {
+            padding: 8px 14px; border: 1px solid #e9edf2; border-radius: 8px;
+            font-size: 0.85rem; color: #475569; background: white;
+            outline: none; transition: border 0.2s;
+        }
+        .mgr-input:focus { border-color: #1a237e; }
+        .mgr-input-icon { position: relative; }
+        .mgr-input-icon input { padding-left: 36px; }
+        .mgr-input-icon i {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%); color: #94a3b8; font-size: 0.82rem;
+        }
+
+        /* ===== PRIMARY BUTTON ===== */
+        .mgr-btn-primary {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: #1a237e; color: white; padding: 9px 18px;
+            border-radius: 9px; font-size: 0.85rem; font-weight: 600;
+            border: none; cursor: pointer; text-decoration: none;
+            transition: background 0.2s; white-space: nowrap;
+        }
+        .mgr-btn-primary:hover { background: #1565C0; color: white; }
+        .mgr-btn-outline {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: white; color: #475569; padding: 8px 16px;
+            border-radius: 9px; font-size: 0.82rem; font-weight: 500;
+            border: 1px solid #e2e8f0; cursor: pointer; text-decoration: none;
+            transition: all 0.15s;
+        }
+        .mgr-btn-outline:hover { border-color: #1a237e; color: #1a237e; }
+
+        /* ===== PAGE TITLE ===== */
+        .mgr-page-title { font-size: 1.45rem; font-weight: 800; color: #1a1d23; margin-bottom: 3px; }
+        .mgr-page-sub { font-size: 0.82rem; color: #64748b; }
+
+        /* ===== PROGRESS BAR ===== */
+        .stock-bar { height: 5px; background: #e2e8f0; border-radius: 3px; margin-top: 5px; }
+        .stock-bar-fill { height: 100%; border-radius: 3px; }
+        .bar-green { background: #22c55e; }
+        .bar-yellow { background: #f59e0b; }
+        .bar-red { background: #ef4444; }
+        .bar-blue { background: #3b82f6; }
+
+        /* ===== PAGINATION ===== */
+        .mgr-pagination { display: flex; align-items: center; gap: 4px; }
+        .mgr-page-btn {
+            width: 34px; height: 34px; border-radius: 7px; border: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.82rem; font-weight: 500; cursor: pointer; color: #475569;
+            text-decoration: none; background: white; transition: all 0.15s;
+        }
+        .mgr-page-btn:hover { border-color: #1a237e; color: #1a237e; }
+        .mgr-page-btn.active { background: #1a237e; color: white; border-color: #1a237e; }
+        .mgr-page-btn.disabled { opacity: 0.4; pointer-events: none; }
+
+        /* Invoice status */
+        .inv-paid { background:#dcfce7; color:#166534; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; }
+        .inv-unpaid { background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; }
+        .inv-method { background:#f1f5f9; color:#475569; padding:3px 9px; border-radius:6px; font-size:0.75rem; font-weight:500; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    @{
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "Manager";
+        var userName = User.Identity?.Name ?? "User";
+        var userInitial = userName.Length > 0 ? userName.Substring(0, 1).ToUpper() : "M";
+        var notifCount = DbContext.LichKhams.Count(l => l.TrangThai == "ChoXacNhan");
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        string? mgrAvatarUrl = null;
+        if (int.TryParse(userIdClaim, out int mgrUid))
+            mgrAvatarUrl = DbContext.NguoiDungs.Where(n => n.MaNguoiDung == mgrUid).Select(n => n.AvatarUrl).FirstOrDefault();
+    }
+
+    <!-- Sidebar -->
+    <div class="mgr-sidebar">
+        <div class="mgr-logo">
+            <div class="mgr-logo-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="mgr-logo-text">
+                <div class="title">ClinicCare Pro</div>
+                <div class="sub">Hệ thống quản lý phòng khám</div>
+            </div>
+        </div>
+
+        <nav class="mgr-nav">
+            <a asp-controller="Manager" asp-action="Index" class="mgr-nav-item @(currentAction == "Index" ? "active" : "")">
+                <i class="fas fa-th-large"></i> Tổng quan
+            </a>
+            <a asp-controller="Manager" asp-action="Personnel" class="mgr-nav-item @(currentAction == "Personnel" ? "active" : "")">
+                <i class="fas fa-users"></i> Quản lý nhân sự
+            </a>
+            <a asp-controller="Manager" asp-action="Patients" class="mgr-nav-item @(currentAction == "Patients" ? "active" : "")">
+                <i class="fas fa-user-injured"></i> Hồ sơ bệnh nhân
+            </a>
+            <a asp-controller="Manager" asp-action="DrugStock" class="mgr-nav-item @(currentAction == "DrugStock" ? "active" : "")">
+                <i class="fas fa-pills"></i> Kho thuốc & Vật tư
+            </a>
+            <a asp-controller="Manager" asp-action="Invoices" class="mgr-nav-item @(currentAction == "Invoices" || currentAction == "InvoiceDetail" ? "active" : "")">
+                <i class="fas fa-file-invoice-dollar"></i> Quản lý hóa đơn
+            </a>
+            <a asp-controller="Manager" asp-action="Reports" class="mgr-nav-item @(currentAction == "Reports" ? "active" : "")">
+                <i class="fas fa-chart-bar"></i> Báo cáo toàn diện
+            </a>
+            <div class="mgr-nav-divider"></div>
+            <a asp-controller="Manager" asp-action="Schedules" class="mgr-nav-item @(currentAction == "Schedules" ? "active" : "")">
+                <i class="fas fa-calendar-alt"></i> Lịch khám
+            </a>
+        </nav>
+
+        <div class="mgr-sidebar-bottom">
+            <div class="mgr-user-card">
+                @if (!string.IsNullOrEmpty(mgrAvatarUrl))
+                {
+                    <img src="@mgrAvatarUrl" class="mgr-user-avatar" style="object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="mgr-user-avatar">@userInitial</div>
+                }
+                <div>
+                    <div class="mgr-user-name">@userName</div>
+                    <div class="mgr-user-role">Manager</div>
+                </div>
+            </div>
+            <a asp-controller="Auth" asp-action="Logout" class="mgr-nav-item" style="color:#fca5a5;">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+            </a>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="mgr-main">
+        <!-- Topbar -->
+        <div class="mgr-topbar">
+            <div class="mgr-date">
+                <i class="far fa-calendar-alt me-1"></i>
+                @DateTime.Now.ToString("dddd, d MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))
+            </div>
+            <div class="mgr-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Tìm kiếm thông tin vận hành, thuốc, hóa đơn..." id="globalSearch" />
+            </div>
+            <div class="mgr-topbar-right">
+                <a href="@Url.Action("Schedules", "Manager")" class="mgr-notif-btn" title="@notifCount lịch chờ xác nhận">
+                    <i class="far fa-bell"></i>
+                    @if (notifCount > 0)
+                    {
+                        <span class="mgr-notif-badge">@(notifCount > 9 ? "9+" : notifCount.ToString())</span>
+                    }
+                </a>
+                <div class="dropdown">
+                    <a href="#" class="mgr-user-btn" data-bs-toggle="dropdown">
+                        @if (!string.IsNullOrEmpty(mgrAvatarUrl))
+                        {
+                            <img src="@mgrAvatarUrl" class="mgr-topbar-avatar" style="object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <div class="mgr-topbar-avatar">@userInitial</div>
+                        }
+                        <div>
+                            <div class="mgr-topbar-name">@userName</div>
+                            <div class="mgr-topbar-role">Manager <i class="fas fa-chevron-down" style="font-size:0.6rem;"></i></div>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius:10px; min-width:180px; margin-top:6px;">
+                        <li><a class="dropdown-item py-2" asp-controller="Auth" asp-action="Profile"><i class="fas fa-id-card text-muted me-2"></i> Hồ sơ</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger" asp-controller="Auth" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mgr-content">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

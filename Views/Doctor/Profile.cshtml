@@ -1,0 +1,229 @@
+@model MyMvcApp.Models.NguoiDung
+@{
+    ViewData["Title"] = "Hồ Sơ Bác Sĩ";
+    Layout = "_PortalLayout";
+}
+
+<style>
+    .profile-header { background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); border-radius: 20px; padding: 2rem; color: white; margin-bottom: 2rem; position: relative; overflow: hidden; }
+    .profile-header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: rgba(255,255,255,0.07); border-radius: 50%; }
+    .profile-header::after { content: ''; position: absolute; bottom: -60px; right: 60px; width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+    .avatar-wrapper { position: relative; display: inline-block; }
+    .avatar-circle { width: 100px; height: 100px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.5); object-fit: cover; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; overflow: hidden; }
+    .avatar-overlay { position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; cursor: pointer; }
+    .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
+
+    .section-card { background: white; border-radius: 16px; padding: 1.75rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 1.5rem; border: 1px solid #f1f5f9; }
+    .section-title { font-weight: 700; font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .form-floating label { font-size: 0.88rem; color: #64748b; }
+    .input-modern { border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; transition: border-color 0.2s; }
+    .input-modern:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14,165,233,0.1); }
+    .info-pill { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 0.3rem 0.8rem; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .btn-save { background: #0ea5e9; color: white; border: none; border-radius: 10px; padding: 0.65rem 2rem; font-weight: 600; transition: all 0.2s; }
+    .btn-save:hover { background: #0284c7; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(14,165,233,0.35); }
+    .stat-mini { text-align: center; padding: 1rem; background: #f8fafc; border-radius: 12px; }
+    .stat-mini-num { font-size: 1.8rem; font-weight: 800; color: #0ea5e9; line-height: 1; }
+    .stat-mini-label { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
+</style>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" style="border-radius: 10px;" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" style="border-radius: 10px;" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="d-flex align-items-center gap-4" style="position: relative; z-index: 1;">
+        <form id="avatarForm" method="post" enctype="multipart/form-data" asp-action="SaveProfile">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="HoTen" value="@Model.HoTen" />
+            <input type="hidden" name="SoDienThoai" value="@Model.SoDienThoai" />
+            <input type="hidden" name="Email" value="@Model.Email" />
+            <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click();" title="Nhấn để đổi ảnh">
+                <div class="avatar-circle">
+                    @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                    {
+                        <img src="@Model.AvatarUrl" alt="Avatar" style="width:100%; height:100%; object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <i class="fas fa-user-md"></i>
+                    }
+                </div>
+                <div class="avatar-overlay">
+                    <i class="fas fa-camera text-white fs-5"></i>
+                </div>
+                <input type="file" id="avatarInput" name="AvatarFile" accept="image/*" style="display:none;" onchange="this.form.submit();" />
+            </div>
+        </form>
+
+        <div>
+            <h4 class="fw-bold mb-1" style="font-size: 1.5rem;">BS. @Model.HoTen</h4>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                <span class="info-pill"><i class="fas fa-stethoscope"></i> @(Model.ChuyenKhoa?.TenChuyenKhoa ?? "Đa khoa")</span>
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <span class="info-pill"><i class="fas fa-envelope"></i> @Model.Email</span>
+                }
+                @if (!string.IsNullOrEmpty(Model.SoDienThoai))
+                {
+                    <span class="info-pill"><i class="fas fa-phone"></i> @Model.SoDienThoai</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-4">
+        <!-- Stats mini -->
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-chart-bar text-primary"></i> Thống Kê</div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="stat-mini">
+                        <div class="stat-mini-num" id="statConsult">--</div>
+                        <div class="stat-mini-label">Phiếu khám</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-mini">
+                        <div class="stat-mini-num" id="statPatients">--</div>
+                        <div class="stat-mini-label">Bệnh nhân</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-mini">
+                        <div class="stat-mini-num" id="statToday">--</div>
+                        <div class="stat-mini-label">Hôm nay</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-mini">
+                        <div class="stat-mini-num text-warning" id="statPending">--</div>
+                        <div class="stat-mini-label">Chờ khám</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-lock text-warning"></i> Đổi Mật Khẩu</div>
+            <form method="post" asp-action="ChangePassword">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size: 0.85rem;">Mật khẩu hiện tại</label>
+                    <input type="password" name="CurrentPassword" class="form-control input-modern" placeholder="••••••••" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size: 0.85rem;">Mật khẩu mới</label>
+                    <input type="password" name="NewPassword" class="form-control input-modern" placeholder="••••••••" required minlength="6" />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold" style="font-size: 0.85rem;">Xác nhận mật khẩu</label>
+                    <input type="password" name="ConfirmPassword" class="form-control input-modern" placeholder="••••••••" required minlength="6" />
+                </div>
+                <button type="submit" class="btn btn-warning w-100" style="border-radius: 10px; font-weight: 600;">
+                    <i class="fas fa-key me-2"></i> Đổi Mật Khẩu
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-8">
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-user-edit text-primary"></i> Thông Tin Cá Nhân</div>
+            <form method="post" enctype="multipart/form-data" asp-action="SaveProfile">
+                @Html.AntiForgeryToken()
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" name="HoTen" class="form-control input-modern" value="@Model.HoTen" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">Số điện thoại</label>
+                        <input type="tel" name="SoDienThoai" class="form-control input-modern" value="@Model.SoDienThoai" placeholder="0912 xxx xxx" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">Email</label>
+                        <input type="email" name="Email" class="form-control input-modern" value="@Model.Email" placeholder="bacsi@medicore.vn" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">Chuyên khoa</label>
+                        <input type="text" class="form-control input-modern" value="@(Model.ChuyenKhoa?.TenChuyenKhoa ?? "Đa khoa")" disabled style="background: #f8fafc;" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size: 0.85rem;">Ảnh đại diện (tùy chọn)</label>
+                        <input type="file" name="AvatarFile" class="form-control input-modern" accept="image/*" />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save me-2"></i> Lưu Thay Đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Account Info -->
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-shield-alt text-success"></i> Thông Tin Tài Khoản</div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <small class="text-muted d-block mb-1">Mã bác sĩ</small>
+                    <strong>BS-@Model.MaNguoiDung.ToString("D5")</strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block mb-1">Vai trò</small>
+                    <span class="badge bg-primary">Bác sĩ</span>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block mb-1">Ngày tạo</small>
+                    <strong>@Model.NgayTao?.ToString("dd/MM/yyyy")</strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block mb-1">Trạng thái</small>
+                    @if (Model.TrangThai)
+                    {
+                        <span class="badge bg-success">Đang hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Đã vô hiệu hóa</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Load stats
+    (async function loadStats() {
+        try {
+            const r = await fetch('/Doctor/Index');
+            // Stats will be loaded via the ViewBag values on dashboard
+            // For now show placeholder
+            document.getElementById('statConsult').textContent = '@ViewBag.TotalConsultations ?? 0';
+            document.getElementById('statPatients').textContent = '@ViewBag.TotalPatients ?? 0';
+            document.getElementById('statToday').textContent = '-';
+            document.getElementById('statPending').textContent = '-';
+        } catch(e) {}
+    })();
+</script>
+}

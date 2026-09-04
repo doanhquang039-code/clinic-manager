@@ -1,63 +1,186 @@
 @model List<MyMvcApp.Models.HoaDon>
 @{
     ViewData["Title"] = "Quản lý Hóa đơn";
-    Layout = "_PortalLayout";
+    Layout = "_ManagerLayout";
+    var status = ViewData["CurrentStatus"]?.ToString() ?? "";
+    var pageIndex = ViewBag.PageIndex as int? ?? 1;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var totalCount = ViewBag.TotalCount as int? ?? Model.Count;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-        <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Quản lý Hóa đơn</h4>
-        <div style="color:var(--admin-text-muted);font-size:0.9rem;">Tổng cộng @Model.Count hóa đơn</div>
+        <div class="mgr-page-title">Quản lý hóa đơn</div>
+        <div class="mgr-page-sub">Hệ thống giám sát dòng tiền, đối chiếu tài chính hóa đơn từ P101 và phê duyệt lệnh chỉnh sửa chứng từ kế toán</div>
+    </div>
+    <a href="#" class="mgr-btn-outline"><i class="fas fa-file-export me-1"></i> Xuất báo cáo tài chính</a>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#eff6ff;">
+                <i class="fas fa-chart-line" style="color:#3b82f6;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Tổng doanh thu tháng này</div>
+                <div class="mgr-stat-value" style="font-size:1.2rem;">@String.Format("{0:N0}", ViewBag.RevenueThisMonth)đ</div>
+                <div class="mgr-stat-sub mgr-stat-trend-up">↑ +12% so với kỳ trước</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#f0fdf4;">
+                <i class="fas fa-money-bill" style="color:#22c55e;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Thanh toán tiền mặt</div>
+                <div class="mgr-stat-value" style="font-size:1.2rem;">@String.Format("{0:N0}", ViewBag.CashRevenue)đ</div>
+                <div class="mgr-stat-sub mgr-stat-trend-neutral">Chiếm 30% tổng dòng tiền</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#f5f3ff;">
+                <i class="fas fa-credit-card" style="color:#8b5cf6;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Chuyển khoản (Transfer)</div>
+                <div class="mgr-stat-value" style="font-size:1.2rem;">@String.Format("{0:N0}", ViewBag.TransferRevenue)đ</div>
+                <div class="mgr-stat-sub mgr-stat-trend-neutral">Chiếm 70% tổng dòng tiền</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#fffbeb;">
+                <i class="fas fa-edit" style="color:#f59e0b;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Yêu cầu sửa chờ duyệt</div>
+                <div class="mgr-stat-value">@ViewBag.PendingCount</div>
+                <div class="mgr-stat-sub mgr-stat-trend-warn">⚠ Cần xử lý lý kiểm toán gấp</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="admin-table-container">
-    <form method="get" class="d-flex gap-3 p-3 border-bottom align-items-center">
-        <select name="status" class="form-select" style="width:200px;border:1px solid var(--admin-border);" onchange="this.form.submit()">
-            <option value="">Tất cả trạng thái</option>
-            <option value="DaThanhToan" selected="@(ViewData["CurrentStatus"]?.ToString()=="DaThanhToan")">Đã thanh toán</option>
-            <option value="ChuaThanhToan" selected="@(ViewData["CurrentStatus"]?.ToString()=="ChuaThanhToan")">Chưa thanh toán</option>
-        </select>
-        <a asp-action="Invoices" class="btn btn-link text-muted" style="text-decoration:none;">Xóa lọc</a>
-    </form>
+<!-- Table -->
+<div class="mgr-table-container">
+    <div class="mgr-table-header">
+        <div class="mgr-tabs">
+            <a href="?tab=list" class="mgr-tab active">
+                <i class="fas fa-list"></i> Danh sách hóa đơn hệ thống
+            </a>
+            <a href="?tab=approve" class="mgr-tab">
+                <i class="fas fa-check-circle"></i> Duyệt yêu cầu sửa hóa đơn
+                @if ((int)(ViewBag.PendingCount ?? 0) > 0)
+                {
+                    <span class="count">@ViewBag.PendingCount</span>
+                }
+            </a>
+        </div>
+        <div class="ms-auto d-flex gap-2 align-items-center">
+            <form method="get" class="mgr-input-icon">
+                <i class="fas fa-search"></i>
+                <input class="mgr-input" style="width:220px;padding-left:32px;" type="text" name="search"
+                       placeholder="Tìm mã HD, bệnh nhân..." />
+            </form>
+            <select class="mgr-input" id="invoiceStatusFilter">
+                <option value="">Tất cả trạng thái</option>
+                <option value="DaThanhToan">Đã thanh toán</option>
+                <option value="ChuaThanhToan">Chưa thanh toán</option>
+            </select>
+            <select class="mgr-input">
+                <option value="">Tất cả hình thức</option>
+                <option value="TienMat">Tiền mặt</option>
+                <option value="ChuyenKhoan">Chuyển khoản</option>
+            </select>
+        </div>
+    </div>
 
-    <table class="admin-table">
+    <table class="mgr-table">
         <thead>
             <tr>
-                <th style="width:10%">MÃ HD</th>
-                <th style="width:22%">BỆNH NHÂN</th>
-                <th style="width:15%">NGÀY LẬP</th>
-                <th style="width:13%">TIỀN DV</th>
-                <th style="width:13%">TIỀN THUỐC</th>
-                <th style="width:12%">TỔNG TIỀN</th>
-                <th style="width:15%; text-align:center">TRẠNG THÁI</th>
+                <th>MÃ HÓA ĐƠN</th>
+                <th>BỆNH NHÂN</th>
+                <th>TIỀN DỊCH VỤ</th>
+                <th>TIỀN THUỐC</th>
+                <th>TỔNG TIỀN</th>
+                <th>HÌNH THỨC</th>
+                <th style="text-align:center;">TRẠNG THÁI</th>
+                <th style="text-align:center;">HÀNH ĐỘNG</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model)
             {
                 <tr>
-                    <td style="font-weight:700;color:#6366f1;">HD-@item.MaHoaDon.ToString("D5")</td>
+                    <td>
+                        <div style="font-weight:700;color:#1a237e;font-size:0.92rem;">HD-@item.MaHoaDon.ToString("D5")</div>
+                        <div style="font-size:0.72rem;color:#94a3b8;">@item.NgayLap?.ToString("dd/MM/yyyy – HH:mm")</div>
+                    </td>
                     <td>
                         <div style="font-weight:600;">@item.PhieuKham?.BenhNhan?.HoTen</div>
-                        <div style="font-size:0.78rem;color:#94a3b8;">TN: @item.NguoiLap?.HoTen</div>
+                        <div style="font-size:0.72rem;color:#94a3b8;">BN-@item.PhieuKham?.BenhNhan?.MaBenhNhan.ToString("D3")</div>
                     </td>
-                    <td style="font-size:0.85rem;">@item.NgayLap?.ToString("dd/MM/yyyy HH:mm")</td>
                     <td style="font-weight:500;">@String.Format("{0:N0}", item.TienDichVu)đ</td>
                     <td style="font-weight:500;">@String.Format("{0:N0}", item.TienThuoc)đ</td>
-                    <td style="font-weight:700;color:#0f172a;">@String.Format("{0:N0}", item.TongTien)đ</td>
+                    <td style="font-weight:800;color:#1a1d23;font-size:0.95rem;">@String.Format("{0:N0}", item.TongTien)đ</td>
+                    <td>
+                        @{
+                            var method = item.PhuongThucThanhToan switch {
+                                "TienMat" => "Tiền mặt",
+                                "ChuyenKhoan" => "Chuyển khoản QR",
+                                _ => item.PhuongThucThanhToan ?? "—"
+                            };
+                        }
+                        <span class="inv-method">@method</span>
+                    </td>
                     <td style="text-align:center;">
                         @if (item.TrangThaiThanhToan == "DaThanhToan")
                         {
-                            <span class="badge bg-success" style="padding:0.4rem 0.9rem;border-radius:20px;">Đã thanh toán</span>
+                            <span class="inv-paid">Đã thanh toán</span>
                         }
                         else
                         {
-                            <span class="badge bg-warning text-dark" style="padding:0.4rem 0.9rem;border-radius:20px;">Chưa thanh toán</span>
+                            <span class="inv-unpaid">Chưa thanh toán</span>
                         }
+                    </td>
+                    <td style="text-align:center;">
+                        <a asp-action="InvoiceDetail" asp-route-id="@item.MaHoaDon" class="action-btn" title="Xem chi tiết">
+                            <i class="fas fa-eye"></i>
+                        </a>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center px-4 py-3" style="border-top:1px solid #eef0f4;">
+        <div style="font-size:0.82rem;color:#64748b;">Hiển thị @Model.Count / @totalCount hóa đơn</div>
+        <div class="mgr-pagination">
+            <a href="?status=@status&page=@(pageIndex-1)" class="mgr-page-btn @(pageIndex<=1?"disabled":"")">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            @for (int p = Math.Max(1,pageIndex-2); p <= Math.Min(totalPages,pageIndex+2); p++)
+            {
+                <a href="?status=@status&page=@p" class="mgr-page-btn @(p==pageIndex?"active":"")">@p</a>
+            }
+            <a href="?status=@status&page=@(pageIndex+1)" class="mgr-page-btn @(pageIndex>=totalPages?"disabled":"")">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+<script>
+var sf = document.getElementById('invoiceStatusFilter');
+if (sf) { sf.value = '@status'; sf.addEventListener('change', function(){ window.location='?status='+this.value+'&page=1'; }); }
+</script>
+}

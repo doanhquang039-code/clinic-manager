@@ -1,146 +1,168 @@
 @model List<MyMvcApp.Models.LichKham>
 @{
-    ViewData["Title"] = "Dashboard Quản lý";
-    Layout = "_PortalLayout";
+    ViewData["Title"] = "Tổng quan Quản lý";
+    Layout = "_ManagerLayout";
 
-    var weeklyData = ViewBag.WeeklyData as List<int> ?? new List<int>();
+    var weeklyData = ViewBag.WeeklyData as List<int> ?? new();
     var weeklyJson = System.Text.Json.JsonSerializer.Serialize(weeklyData);
-
     var labels = new List<string>();
     for (int i = 6; i >= 0; i--)
-        labels.Add(DateTime.Today.AddDays(-i).ToString("ddd dd/MM"));
+        labels.Add(DateTime.Today.AddDays(-i).ToString("ddd dd/MM", new System.Globalization.CultureInfo("vi-VN")));
     var labelsJson = System.Text.Json.JsonSerializer.Serialize(labels);
+    var lowStockCount = ViewBag.LowStockCount as int? ?? 0;
 }
 
 <div class="mb-4">
-    <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Dashboard Quản lý</h4>
-    <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Tổng quan hoạt động phòng khám</div>
+    <div class="mgr-page-title">Tổng quan Quản lý</div>
+    <div class="mgr-page-sub">Báo cáo tổng hợp tình hình vận hành và điều hành hoạt động phòng khám.</div>
 </div>
 
 <!-- KPI Cards -->
-<div class="row g-4 mb-4">
+<div class="row g-3 mb-5">
     <div class="col-md-3">
-        <div class="admin-card p-4" style="border-left: 4px solid #6366f1;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div style="font-size: 0.8rem; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 0.05em;">Bệnh nhân</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.2;">@ViewBag.TotalBenhNhan</div>
-                    <div style="font-size: 0.8rem; color: #64748b;">Tổng đã đăng ký</div>
-                </div>
-                <div style="width: 52px; height: 52px; border-radius: 14px; background: #ede9fe; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #6366f1;">
-                    <i class="fas fa-procedures"></i>
-                </div>
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#eff6ff;">
+                <i class="fas fa-chart-line" style="color:#3b82f6;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Tổng doanh thu</div>
+                <div class="mgr-stat-value" style="font-size:1.25rem;">@String.Format("{0:N0}", ViewBag.TotalRevenue)đ</div>
+                <div class="mgr-stat-sub mgr-stat-trend-up">↑ +12% so với tháng trước</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="admin-card p-4" style="border-left: 4px solid #22c55e;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div style="font-size: 0.8rem; font-weight: 600; color: #22c55e; text-transform: uppercase; letter-spacing: 0.05em;">Bác sĩ</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.2;">@ViewBag.TotalBacSi</div>
-                    <div style="font-size: 0.8rem; color: #64748b;">Đang hoạt động</div>
-                </div>
-                <div style="width: 52px; height: 52px; border-radius: 14px; background: #dcfce7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #22c55e;">
-                    <i class="fas fa-user-md"></i>
-                </div>
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#f0fdf4;">
+                <i class="fas fa-user-injured" style="color:#22c55e;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Lượt khám hôm nay</div>
+                <div class="mgr-stat-value">@ViewBag.LichHomNay</div>
+                <div class="mgr-stat-sub mgr-stat-trend-up">↑ +8% tăng trưởng</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="admin-card p-4" style="border-left: 4px solid #f59e0b;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div style="font-size: 0.8rem; font-weight: 600; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.05em;">Lịch hôm nay</div>
-                    <div style="font-size: 2rem; font-weight: 700; color: #0f172a; line-height: 1.2;">@ViewBag.LichHomNay</div>
-                    <div style="font-size: 0.8rem; color: #64748b;">Chờ: @ViewBag.LichChoXacNhan / Xong: @ViewBag.LichHoanTat</div>
-                </div>
-                <div style="width: 52px; height: 52px; border-radius: 14px; background: #fef3c7; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #f59e0b;">
-                    <i class="fas fa-calendar-day"></i>
-                </div>
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#f5f3ff;">
+                <i class="fas fa-procedures" style="color:#8b5cf6;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Bệnh nhân mới</div>
+                <div class="mgr-stat-value">@ViewBag.TotalBenhNhan</div>
+                <div class="mgr-stat-sub mgr-stat-trend-neutral">— Ổn định</div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="admin-card p-4" style="border-left: 4px solid #0ea5e9;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div style="font-size: 0.8rem; font-weight: 600; color: #0ea5e9; text-transform: uppercase; letter-spacing: 0.05em;">Doanh thu tháng</div>
-                    <div style="font-size: 1.6rem; font-weight: 700; color: #0f172a; line-height: 1.2;">@String.Format("{0:N0}", ViewBag.RevenueThisMonth)đ</div>
-                    <div style="font-size: 0.8rem; color: #64748b;">Tổng: @String.Format("{0:N0}", ViewBag.TotalRevenue)đ</div>
-                </div>
-                <div style="width: 52px; height: 52px; border-radius: 14px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #0ea5e9;">
-                    <i class="fas fa-chart-line"></i>
-                </div>
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#fffbeb;">
+                <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Thuốc sắp hết hạn</div>
+                <div class="mgr-stat-value">@lowStockCount</div>
+                <div class="mgr-stat-sub mgr-stat-trend-warn">⚠ Cần nhập hàng gấp</div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- Biểu đồ lịch khám 7 ngày -->
-    <div class="col-lg-7">
-        <div class="admin-card p-4 h-100">
-            <h6 style="font-weight: 600; color: #334155; margin-bottom: 1.5rem;"><i class="fas fa-chart-bar text-primary me-2"></i>Số ca khám 7 ngày gần nhất</h6>
-            <canvas id="weeklyChart" height="200"></canvas>
+    <!-- Chart -->
+    <div class="col-lg-8">
+        <div class="mgr-table-container p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 style="font-weight:700;color:#1a1d23;margin:0;">Số ca khám 7 ngày gần nhất</h6>
+                <a asp-action="Schedules" class="mgr-btn-outline" style="padding:6px 14px;font-size:0.78rem;">
+                    Xem lịch <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <canvas id="weeklyChart" height="180"></canvas>
         </div>
     </div>
 
-    <!-- Lịch khám mới nhất -->
-    <div class="col-lg-5">
-        <div class="admin-card p-4 h-100">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 style="font-weight: 600; color: #334155; margin: 0;"><i class="fas fa-clock text-warning me-2"></i>Lịch khám mới nhất</h6>
-                <a asp-controller="Manager" asp-action="Patients" class="text-primary text-decoration-none" style="font-size: 0.85rem;">Xem tất cả →</a>
+    <!-- Right panel -->
+    <div class="col-lg-4">
+        <!-- Quick stats -->
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <div class="mgr-stat-card" style="padding:14px 16px;">
+                    <div>
+                        <div class="mgr-stat-label">Bác sĩ</div>
+                        <div style="font-size:1.5rem;font-weight:800;color:#1a1d23;">@ViewBag.TotalBacSi</div>
+                        <div style="font-size:0.72rem;color:#22c55e;">● Đang hoạt động</div>
+                    </div>
+                </div>
             </div>
-            <div class="list-group list-group-flush">
-                @if (Model != null && Model.Any())
+            <div class="col-6">
+                <div class="mgr-stat-card" style="padding:14px 16px;">
+                    <div>
+                        <div class="mgr-stat-label">Chờ xác nhận</div>
+                        <div style="font-size:1.5rem;font-weight:800;color:#1a1d23;">@ViewBag.LichChoXacNhan</div>
+                        <div style="font-size:0.72rem;color:#f59e0b;">● Lịch khám chờ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent appointments -->
+        <div class="mgr-table-container h-auto">
+            <div class="d-flex justify-content-between align-items-center px-4 py-3" style="border-bottom:1px solid #eef0f4;">
+                <div style="font-weight:700;font-size:0.88rem;color:#1a1d23;">Lịch khám gần nhất</div>
+                <a asp-action="Schedules" style="font-size:0.78rem;color:#1a237e;text-decoration:none;">Xem tất cả →</a>
+            </div>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var item in Model)
                 {
-                    @foreach (var item in Model)
-                    {
-                        var statusColor = item.TrangThai == "DaXacNhan" ? "#22c55e" : "#f59e0b";
-                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center" style="border-color: #f1f5f9;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 0.9rem;">@item.BenhNhan?.HoTen</div>
-                                <div style="font-size: 0.78rem; color: #64748b;">@item.NgayKham.ToString("dd/MM") — @item.BacSi?.HoTen</div>
-                            </div>
-                            <span style="font-size: 0.75rem; font-weight: 600; color: @statusColor; background: @(statusColor + "15"); padding: 3px 10px; border-radius: 20px;">
-                                @(item.TrangThai == "DaXacNhan" ? "Đã khám" : "Chờ")
-                            </span>
+                    <div class="d-flex align-items-center gap-3 px-4 py-2" style="border-bottom:1px solid #f8fafc;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#6366f1;flex-shrink:0;">
+                            @item.BenhNhan?.HoTen.Substring(0, 1)
                         </div>
-                    }
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:600;font-size:0.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@item.BenhNhan?.HoTen</div>
+                            <div style="font-size:0.72rem;color:#94a3b8;">@item.NgayKham.ToString("dd/MM") – @item.BacSi?.HoTen</div>
+                        </div>
+                        @if (item.TrangThai == "DaXacNhan")
+                        {
+                            <span style="font-size:0.7rem;font-weight:700;color:#166534;background:#dcfce7;padding:2px 8px;border-radius:12px;">Đã khám</span>
+                        }
+                        else
+                        {
+                            <span style="font-size:0.7rem;font-weight:700;color:#92400e;background:#fef3c7;padding:2px 8px;border-radius:12px;">Chờ</span>
+                        }
+                    </div>
                 }
-                else
-                {
-                    <div class="text-center text-muted py-4">Chưa có lịch khám nào.</div>
-                }
-            </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-4" style="font-size:0.85rem;">Chưa có lịch khám nào.</div>
+            }
         </div>
     </div>
 </div>
 
 @section Scripts {
 <script>
-const ctx = document.getElementById('weeklyChart').getContext('2d');
-new Chart(ctx, {
+new Chart(document.getElementById('weeklyChart').getContext('2d'), {
     type: 'bar',
     data: {
         labels: @Html.Raw(labelsJson),
         datasets: [{
             label: 'Số ca khám',
             data: @Html.Raw(weeklyJson),
-            backgroundColor: 'rgba(99, 102, 241, 0.15)',
-            borderColor: '#6366f1',
-            borderWidth: 2,
-            borderRadius: 6,
-            borderSkipped: false,
+            backgroundColor: 'rgba(26,35,126,0.08)',
+            borderColor: '#1a237e',
+            borderWidth: 2, borderRadius: 7, borderSkipped: false,
         }]
     },
     options: {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } },
+            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f8fafc' } },
             x: { grid: { display: false } }
         }
     }

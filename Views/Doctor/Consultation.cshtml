@@ -4,12 +4,59 @@
     Layout = "_PortalLayout";
     
     var appointment = ViewBag.Appointment as MyMvcApp.Models.LichKham;
+    var patientHistory = ViewBag.PatientHistory as List<MyMvcApp.Models.PhieuKham> ?? new();
+    var medicines = ViewBag.Medicines as List<MyMvcApp.Models.Thuoc> ?? new();
 }
 
-<div class="mb-4">
-    <a asp-action="Index" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Quay lại Danh sách</a>
-    <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Phiếu Khám Bệnh</h4>
-    <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Thực hiện khám chuyên khoa</div>
+<style>
+    .consultation-header { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 16px; padding: 1.5rem 2rem; color: white; margin-bottom: 1.5rem; }
+    .tab-nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0; }
+    .tab-btn { background: none; border: none; padding: 0.75rem 1.25rem; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; border-radius: 6px 6px 0 0; }
+    .tab-btn.active { color: #0ea5e9; border-bottom-color: #0ea5e9; background: #f0f9ff; }
+    .tab-pane { display: none; } .tab-pane.active { display: block; }
+
+    .history-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; transition: box-shadow 0.2s; }
+    .history-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .history-badge { font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
+
+    /* Prescription table */
+    .prescription-table { width: 100%; border-collapse: collapse; }
+    .prescription-table th { background: #f8fafc; padding: 0.6rem 0.75rem; text-align: left; font-size: 0.82rem; color: #64748b; font-weight: 600; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+    .prescription-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .prescription-table .med-name { font-weight: 600; color: #1e293b; }
+    .med-search-input { width: 100%; padding: 0.4rem 0.65rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
+    .med-search-input:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.12); }
+    .medicine-dropdown { position: absolute; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 999; max-height: 220px; overflow-y: auto; width: 280px; display: none; }
+    .medicine-dropdown-item { padding: 0.65rem 1rem; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+    .medicine-dropdown-item:hover { background: #f0f9ff; }
+    .medicine-dropdown-item:last-child { border-bottom: none; }
+    .med-item-name { font-weight: 600; font-size: 0.9rem; color: #1e293b; }
+    .med-item-sub { font-size: 0.78rem; color: #64748b; }
+    .btn-remove-med { background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+    .btn-remove-med:hover { background: #dc2626; color: white; }
+    .qty-input { width: 70px; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; text-align: center; }
+    .dosage-input { width: 100%; padding: 0.35rem 0.65rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; }
+
+    .patient-info-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 16px; padding: 1.5rem; }
+    .alert-allergy { background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; padding: 0.75rem 1rem; color: #9f1239; }
+</style>
+
+<div class="consultation-header">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <div style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.25rem;">
+                <a asp-action="Index" style="color: white; opacity: 0.8; text-decoration: none;">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại Dashboard
+                </a>
+            </div>
+            <h4 class="fw-bold mb-0"><i class="fas fa-stethoscope me-2"></i> Phiếu Khám Bệnh</h4>
+            <div style="opacity: 0.8; font-size: 0.9rem;">Lịch khám #@appointment?.MaLichKham · @appointment?.NgayKham.ToString("dd/MM/yyyy")</div>
+        </div>
+        <div class="text-end">
+            <div style="font-size: 0.85rem; opacity: 0.8;">Giờ khám</div>
+            <div style="font-size: 1.6rem; font-weight: 700;">@appointment?.GioKham.ToString(@"hh\:mm")</div>
+        </div>
+    </div>
 </div>
 
 @if (TempData["ErrorMessage"] != null)
@@ -21,157 +68,368 @@
 }
 
 <div class="row g-4">
+    <!-- Left: Patient Info -->
     <div class="col-lg-4">
-        <div class="admin-card p-4 h-100" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
-            <h5 style="font-weight: 600; color: #334155; margin-bottom: 1.5rem;"><i class="fas fa-address-card text-primary me-2"></i> Thông tin Bệnh nhân</h5>
+        <div class="patient-info-card mb-4">
+            <h6 style="font-weight: 700; color: #334155; margin-bottom: 1.25rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                <i class="fas fa-address-card text-primary me-2"></i> Thông Tin Bệnh Nhân
+            </h6>
             
             <div class="text-center mb-4">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: #e2e8f0; display: inline-flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #94a3b8; margin-bottom: 1rem;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #38bdf8); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; color: white; margin-bottom: 0.75rem;">
                     <i class="fas fa-user-injured"></i>
                 </div>
-                <h5 style="font-weight: 700; margin-bottom: 0;">@appointment?.BenhNhan?.HoTen</h5>
-                <span class="badge bg-secondary mt-2">ID: BN-@appointment?.MaBenhNhan.ToString("D5")</span>
+                <h5 class="fw-bold mb-1">@appointment?.BenhNhan?.HoTen</h5>
+                <span class="badge bg-primary">BN-@appointment?.MaBenhNhan.ToString("D5")</span>
             </div>
 
             <ul class="list-group list-group-flush" style="background: transparent;">
-                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                    <span class="text-muted" style="font-size: 0.9rem;">Tuổi</span>
-                    <strong>@(appointment?.BenhNhan != null ? DateTime.Now.Year - appointment.BenhNhan.NgaySinh.Year : 0)</strong>
+                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between py-2">
+                    <span class="text-muted" style="font-size: 0.88rem;">Ngày sinh</span>
+                    <strong style="font-size: 0.9rem;">@appointment?.BenhNhan?.NgaySinh.ToString("dd/MM/yyyy")</strong>
                 </li>
-                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                    <span class="text-muted" style="font-size: 0.9rem;">Giới tính</span>
-                    <strong>@appointment?.BenhNhan?.GioiTinh</strong>
+                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between py-2">
+                    <span class="text-muted" style="font-size: 0.88rem;">Tuổi</span>
+                    <strong style="font-size: 0.9rem;">@(appointment?.BenhNhan != null ? DateTime.Now.Year - appointment.BenhNhan.NgaySinh.Year : 0) tuổi</strong>
                 </li>
-                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                    <span class="text-muted" style="font-size: 0.9rem;">Dị ứng</span>
-                    @if (!string.IsNullOrEmpty(appointment?.BenhNhan?.DiUng))
-                    {
-                        <strong class="text-danger">@appointment.BenhNhan.DiUng</strong>
-                    }
-                    else
-                    {
-                        <strong>Không</strong>
-                    }
+                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between py-2">
+                    <span class="text-muted" style="font-size: 0.88rem;">Giới tính</span>
+                    <strong style="font-size: 0.9rem;">@appointment?.BenhNhan?.GioiTinh</strong>
                 </li>
-                <li class="list-group-item bg-transparent px-0">
-                    <div class="text-muted mb-1" style="font-size: 0.9rem;">Triệu chứng ban đầu</div>
-                    <div class="p-2" style="background: white; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.9rem;">
-                        @(string.IsNullOrEmpty(appointment?.LyDoKham) ? "Không có dữ liệu" : appointment.LyDoKham)
-                    </div>
+                <li class="list-group-item bg-transparent px-0 d-flex justify-content-between py-2">
+                    <span class="text-muted" style="font-size: 0.88rem;">Số điện thoại</span>
+                    <strong style="font-size: 0.9rem;">@appointment?.BenhNhan?.SoDienThoai</strong>
                 </li>
             </ul>
+
+            @if (!string.IsNullOrEmpty(appointment?.BenhNhan?.DiUng))
+            {
+                <div class="alert-allergy mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Dị ứng:</strong> @appointment.BenhNhan.DiUng
+                </div>
+            }
+        </div>
+
+        <!-- Lý do khám -->
+        <div class="admin-card p-4">
+            <h6 style="font-weight: 700; color: #334155; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+                <i class="fas fa-clipboard-list text-warning me-2"></i> Lý Do Khám
+            </h6>
+            <p class="text-muted mb-0" style="line-height: 1.7;">
+                @(string.IsNullOrEmpty(appointment?.LyDoKham) ? "Không có mô tả." : appointment.LyDoKham)
+            </p>
         </div>
     </div>
 
+    <!-- Right: Main Consultation Area -->
     <div class="col-lg-8">
-        <div class="admin-card p-4">
-            <h5 style="font-weight: 600; color: #334155; margin-bottom: 1.5rem;"><i class="fas fa-file-medical text-primary me-2"></i> Kết quả Khám & Chẩn đoán</h5>
-            
-            <form asp-action="SaveConsultation" method="post">
-                <input type="hidden" asp-for="MaLichKham" />
-                <input type="hidden" asp-for="MaBenhNhan" />
-                <input type="hidden" asp-for="MaBacSi" />
-                
-                <div class="mb-4">
-                    <label class="form-label" style="font-weight: 600; color: #475569;">GHI NHẬN TRIỆU CHỨNG LÂM SÀNG</label>
-                    <textarea asp-for="TrieuChung" class="form-control" rows="3" style="border-radius: 8px;" placeholder="Mô tả chi tiết triệu chứng hiện tại của bệnh nhân..."></textarea>
-                </div>
 
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label mb-0" style="font-weight: 600; color: #475569;">CHẨN ĐOÁN (MÃ BỆNH) <span class="text-danger">*</span></label>
-                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#templatePanel" style="border-radius: 6px; font-size: 0.8rem;">
-                            <i class="fas fa-bolt me-1"></i> Template nhanh
-                        </button>
+        <!-- Tabs -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('tab-exam', this)">
+                <i class="fas fa-stethoscope me-1"></i> Khám & Chẩn đoán
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-prescription', this)">
+                <i class="fas fa-pills me-1"></i> Kê Đơn Thuốc
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-history', this)">
+                <i class="fas fa-history me-1"></i> Lịch Sử Khám
+                @if (patientHistory.Count > 0)
+                {
+                    <span class="badge bg-primary ms-1" style="font-size: 0.7rem;">@patientHistory.Count</span>
+                }
+            </button>
+        </div>
+
+        <form id="consultationForm" method="post" asp-action="SaveConsultation">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="MaLichKham" />
+            <input type="hidden" asp-for="MaBenhNhan" />
+            <input type="hidden" asp-for="MaBacSi" />
+
+            <!-- Tab 1: Exam -->
+            <div id="tab-exam" class="tab-pane active">
+                <div class="admin-card p-4 mb-4">
+                    <h6 style="font-weight: 700; color: #334155; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.25rem;">
+                        <i class="fas fa-notes-medical text-primary me-2"></i> Thông Tin Khám
+                    </h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.88rem;">Triệu chứng</label>
+                        <textarea asp-for="TrieuChung" class="form-control" rows="3" placeholder="Mô tả triệu chứng bệnh nhân..." style="border-radius: 8px; resize: none;"></textarea>
                     </div>
-                    
-                    <!-- Template Panel -->
-                    <div class="collapse mb-2" id="templatePanel">
-                        <div class="p-3 border rounded" style="background: #f8fafc; border-radius: 8px !important;">
-                            <div style="font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Chọn chẩn đoán thường gặp</div>
-                            <div class="d-flex flex-wrap gap-2">
-                                @{
-                                    var templates = new[]
-                                    {
-                                        new { Label = "Viêm họng cấp", Code = "J02.9", Symptom = "Đau họng, nuốt đau, sốt nhẹ", Advice = "Nghỉ ngơi, uống nhiều nước ấm, tránh thức ăn cứng và cay." },
-                                        new { Label = "Cảm cúm", Code = "J11", Symptom = "Sổ mũi, hắt hơi, đau đầu, sốt", Advice = "Nghỉ ngơi tại nhà, uống nhiều nước, hạ sốt khi cần." },
-                                        new { Label = "Viêm dạ dày", Code = "K29.7", Symptom = "Đau bụng thượng vị, buồn nôn, ợ chua", Advice = "Ăn nhẹ, tránh rượu bia, cà phê, thức ăn cay nóng. Ăn đúng giờ." },
-                                        new { Label = "Cao huyết áp", Code = "I10", Symptom = "Đau đầu, chóng mặt, huyết áp tăng cao", Advice = "Hạn chế muối, stress, nghỉ ngơi đầy đủ, tái khám định kỳ." },
-                                        new { Label = "Đái tháo đường T2", Code = "E11", Symptom = "Khát nước nhiều, tiểu nhiều, mệt mỏi", Advice = "Kiểm soát chế độ ăn, luyện tập thể dục đều đặn, theo dõi đường huyết." },
-                                        new { Label = "Viêm phế quản", Code = "J40", Symptom = "Ho nhiều, có đờm, tức ngực", Advice = "Nghỉ ngơi, tránh khói bụi, giữ ấm vùng ngực." },
-                                        new { Label = "Đau lưng cơ học", Code = "M54.5", Symptom = "Đau vùng thắt lưng, khó cúi", Advice = "Chườm ấm, tránh mang vác nặng, ngủ nệm cứng." },
-                                        new { Label = "Rối loạn lo âu", Code = "F41.1", Symptom = "Lo lắng quá mức, hồi hộp, mất ngủ", Advice = "Giảm căng thẳng, thở sâu, tập thể dục nhẹ. Tái khám nếu không cải thiện." },
-                                    };
-                                    foreach (var t in templates)
-                                    {
-                                        <button type="button" class="btn btn-sm btn-light template-btn"
-                                            style="border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.78rem; padding: 4px 10px;"
-                                            data-chandoan="@t.Label (@t.Code)"
-                                            data-trieuchung="@t.Symptom"
-                                            data-loidan="@t.Advice">
-                                            @t.Label
-                                        </button>
-                                    }
-                                }
-                            </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.88rem;">Chẩn đoán <span class="text-danger">*</span></label>
+                        <textarea asp-for="ChanDoan" class="form-control" rows="3" placeholder="Nhập chẩn đoán bệnh..." required style="border-radius: 8px; resize: none;"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold" style="font-size: 0.88rem;">Lời dặn cho bệnh nhân</label>
+                            <textarea asp-for="LoiDan" class="form-control" rows="3" placeholder="Hướng dẫn điều trị, chế độ sinh hoạt..." style="border-radius: 8px; resize: none;"></textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold" style="font-size: 0.88rem;">Ghi chú nội bộ</label>
+                            <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Ghi chú riêng cho bác sĩ..." style="border-radius: 8px; resize: none;"></textarea>
                         </div>
                     </div>
-                    
-                    <input asp-for="ChanDoan" type="text" class="form-control" style="border-radius: 8px; padding: 0.6rem 1rem;" required placeholder="Ví dụ: Viêm họng cấp (J02.9)" />
-                    <span asp-validation-for="ChanDoan" class="text-danger"></span>
                 </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label" style="font-weight: 600; color: #475569;">LỜI DẶN BÁC SĨ</label>
-                        <textarea asp-for="LoiDan" class="form-control" rows="4" style="border-radius: 8px;" placeholder="Dặn dò chế độ ăn uống, nghỉ ngơi..."></textarea>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" style="font-weight: 600; color: #475569;">GHI CHÚ NỘI BỘ</label>
-                        <textarea asp-for="GhiChu" class="form-control" rows="4" style="border-radius: 8px;" placeholder="Ghi chú thêm (không in ra phiếu)"></textarea>
-                    </div>
-                </div>
+            </div>
 
-                <hr class="my-4" />
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-muted" style="font-size: 0.85rem;">
-                        <i class="fas fa-info-circle me-1"></i> Dùng Template nhanh để điền tự động các trường chẩn đoán.
+            <!-- Tab 2: Prescription -->
+            <div id="tab-prescription" class="tab-pane">
+                <div class="admin-card p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 style="font-weight: 700; color: #334155; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0;">
+                            <i class="fas fa-prescription-bottle-alt text-success me-2"></i> Đơn Thuốc
+                        </h6>
+                        <button type="button" id="addMedBtn" class="btn btn-sm btn-success" style="border-radius: 8px; padding: 0.4rem 1rem;">
+                            <i class="fas fa-plus me-1"></i> Thêm thuốc
+                        </button>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="background: var(--admin-sidebar-bg); border: none; border-radius: 8px; font-weight: 600; padding: 0.6rem 1.5rem;">
-                        <i class="fas fa-save me-2"></i> Lưu & Hoàn tất Khám
+
+                    <div style="position: relative; margin-bottom: 1rem;">
+                        <input type="text" id="medSearchBox" class="form-control" placeholder="🔍 Tìm kiếm tên thuốc để thêm vào đơn..." style="border-radius: 8px;">
+                        <div id="medDropdown" class="medicine-dropdown"></div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="prescription-table" id="prescriptionTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%;">Tên thuốc</th>
+                                    <th style="width: 12%;">ĐVT</th>
+                                    <th style="width: 10%;">SL</th>
+                                    <th style="width: 22%;">Liều dùng</th>
+                                    <th style="width: 13%;">Đơn giá</th>
+                                    <th style="width: 8%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="prescriptionBody">
+                                <tr id="emptyPrescription">
+                                    <td colspan="6" class="text-center text-muted py-4" style="font-size: 0.9rem;">
+                                        <i class="fas fa-pills fa-2x d-block mb-2 opacity-25"></i>
+                                        Chưa có thuốc nào trong đơn. Tìm kiếm hoặc nhấn "Thêm thuốc" để thêm.
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr id="prescriptionTotal" style="display: none;">
+                                    <td colspan="4" class="text-end fw-bold" style="font-size: 0.9rem;">Tổng tiền thuốc:</td>
+                                    <td colspan="2" class="fw-bold text-primary" id="totalMedCost">0 đ</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: History -->
+            <div id="tab-history" class="tab-pane">
+                <div class="admin-card p-4">
+                    <h6 style="font-weight: 700; color: #334155; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.25rem;">
+                        <i class="fas fa-history text-info me-2"></i> Lịch Sử Khám Của Bệnh Nhân
+                    </h6>
+                    @if (patientHistory.Count == 0)
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
+                            <p>Bệnh nhân này chưa có lần khám nào được ghi lại.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var h in patientHistory)
+                        {
+                            <div class="history-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="fw-bold" style="font-size: 0.95rem;">@h.NgayKham?.ToString("dd/MM/yyyy HH:mm")</span>
+                                        <span class="ms-2 text-muted" style="font-size: 0.82rem;">Phiếu #@h.MaPhieuKham</span>
+                                    </div>
+                                    <span class="badge bg-info text-white history-badge">Đã khám</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(h.TrieuChung))
+                                {
+                                    <div class="mb-1" style="font-size: 0.88rem;"><span class="text-muted">Triệu chứng:</span> @h.TrieuChung</div>
+                                }
+                                <div class="mb-1" style="font-size: 0.88rem;"><span class="text-muted">Chẩn đoán:</span> <strong>@h.ChanDoan</strong></div>
+                                @if (!string.IsNullOrEmpty(h.LoiDan))
+                                {
+                                    <div class="mb-1" style="font-size: 0.88rem;"><span class="text-muted">Lời dặn:</span> @h.LoiDan</div>
+                                }
+                                @if (h.ChiTietDonThuocs.Count > 0)
+                                {
+                                    <div class="mt-2 pt-2" style="border-top: 1px solid #f1f5f9;">
+                                        <small class="text-muted fw-semibold"><i class="fas fa-pills me-1"></i> Đơn thuốc:</small>
+                                        <div class="d-flex flex-wrap gap-1 mt-1">
+                                            @foreach (var ct in h.ChiTietDonThuocs)
+                                            {
+                                                <span class="badge" style="background: #ecfdf5; color: #065f46; font-weight: 500; border-radius: 20px;">
+                                                    @ct.Thuoc?.TenThuoc x@ct.SoLuong
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="admin-card p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-action="Index" class="btn btn-light" style="border-radius: 8px;">
+                        <i class="fas fa-times me-1"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 8px; padding: 0.6rem 2rem; font-weight: 600;">
+                        <i class="fas fa-save me-2"></i> Lưu Kết Quả Khám
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
 <script>
-document.querySelectorAll('.template-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        // Fill in the fields
-        var chanDoan = this.getAttribute('data-chandoan');
-        var trieuChung = this.getAttribute('data-trieuchung');
-        var loiDan = this.getAttribute('data-loidan');
+    // ===== TAB SWITCHING =====
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
 
-        document.getElementById('ChanDoan').value = chanDoan;
-        if (document.getElementById('TrieuChung').value === '')
-            document.getElementById('TrieuChung').value = trieuChung;
-        if (document.getElementById('LoiDan').value === '')
-            document.getElementById('LoiDan').value = loiDan;
+    // ===== PRESCRIPTION LOGIC =====
+    const prescriptionBody = document.getElementById('prescriptionBody');
+    const emptyRow = document.getElementById('emptyPrescription');
+    const totalRow = document.getElementById('prescriptionTotal');
+    const totalCostEl = document.getElementById('totalMedCost');
+    let medItems = [];
 
-        // Visual feedback
-        document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('btn-primary', 'active'));
-        this.classList.add('btn-primary');
-        this.classList.remove('btn-light');
+    function updateTotal() {
+        const total = medItems.reduce((sum, m) => sum + (m.price * m.qty), 0);
+        totalCostEl.textContent = total.toLocaleString('vi-VN') + ' đ';
+        totalRow.style.display = medItems.length > 0 ? '' : 'none';
+        emptyRow.style.display = medItems.length === 0 ? '' : 'none';
+    }
 
-        // Auto-close template panel
-        var collapseEl = document.getElementById('templatePanel');
-        bootstrap.Collapse.getOrCreateInstance(collapseEl).hide();
+    function renderPrescription() {
+        // Remove old rows
+        prescriptionBody.querySelectorAll('.med-row').forEach(r => r.remove());
+
+        medItems.forEach((med, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = 'med-row';
+            tr.innerHTML = `
+                <td>
+                    <span class="med-name">${med.name}</span>
+                    <input type="hidden" name="ThuocIds" value="${med.id}">
+                </td>
+                <td style="color: #64748b; font-size: 0.88rem;">${med.unit}</td>
+                <td>
+                    <input type="number" name="SoLuongs" class="qty-input" value="${med.qty}" min="1" max="${med.stock}" onchange="updateQty(${idx}, this.value)">
+                </td>
+                <td>
+                    <input type="text" name="LieuDungs" class="dosage-input" value="${med.dosage}" placeholder="VD: 2 viên/ngày" onchange="updateDosage(${idx}, this.value)">
+                </td>
+                <td style="font-weight: 600; color: #0ea5e9;">${med.price.toLocaleString('vi-VN')} đ</td>
+                <td>
+                    <button type="button" class="btn-remove-med" onclick="removeMed(${idx})"><i class="fas fa-times"></i></button>
+                </td>
+            `;
+            prescriptionBody.appendChild(tr);
+        });
+
+        updateTotal();
+    }
+
+    function addMedicine(med) {
+        // Check if already added
+        if (medItems.find(m => m.id === med.maThuoc)) {
+            showAlert('Thuốc này đã được thêm vào đơn!', 'warning');
+            return;
+        }
+        medItems.push({ id: med.maThuoc, name: med.tenThuoc, unit: med.donViTinh, price: med.donGia, stock: med.soLuongTon, qty: 1, dosage: '' });
+        renderPrescription();
+    }
+
+    function removeMed(idx) {
+        medItems.splice(idx, 1);
+        renderPrescription();
+    }
+
+    function updateQty(idx, val) {
+        medItems[idx].qty = parseInt(val) || 1;
+        updateTotal();
+    }
+
+    function updateDosage(idx, val) {
+        medItems[idx].dosage = val;
+    }
+
+    // Search medicines
+    const medSearchBox = document.getElementById('medSearchBox');
+    const medDropdown = document.getElementById('medDropdown');
+    let searchTimeout;
+
+    medSearchBox.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const q = this.value.trim();
+        if (q.length < 1) { medDropdown.style.display = 'none'; return; }
+        searchTimeout = setTimeout(() => fetchMedicines(q), 300);
     });
-});
+
+    async function fetchMedicines(q) {
+        try {
+            const res = await fetch(`/Doctor/SearchMedicines?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            renderDropdown(data);
+        } catch(e) { console.error(e); }
+    }
+
+    function renderDropdown(items) {
+        if (!items || items.length === 0) {
+            medDropdown.innerHTML = '<div class="medicine-dropdown-item text-muted" style="font-size: 0.88rem;">Không tìm thấy thuốc phù hợp.</div>';
+        } else {
+            medDropdown.innerHTML = items.map(m => `
+                <div class="medicine-dropdown-item" onclick="selectMed(${JSON.stringify(m).replace(/"/g, '&quot;')})">
+                    <div class="med-item-name">${m.tenThuoc}</div>
+                    <div class="med-item-sub">${m.donViTinh} · ${m.donGia.toLocaleString('vi-VN')} đ · Tồn: ${m.soLuongTon}</div>
+                </div>
+            `).join('');
+        }
+        medDropdown.style.display = 'block';
+    }
+
+    function selectMed(med) {
+        addMedicine(med);
+        medSearchBox.value = '';
+        medDropdown.style.display = 'none';
+        switchTab('tab-prescription', document.querySelectorAll('.tab-btn')[1]);
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+        if (!medSearchBox.contains(e.target) && !medDropdown.contains(e.target)) {
+            medDropdown.style.display = 'none';
+        }
+    });
+
+    document.getElementById('addMedBtn').addEventListener('click', function() {
+        medSearchBox.focus();
+        switchTab('tab-prescription', document.querySelectorAll('.tab-btn')[1]);
+    });
+
+    function showAlert(msg, type = 'info') {
+        const div = document.createElement('div');
+        div.className = `alert alert-${type} alert-dismissible fade show`;
+        div.style.cssText = 'border-radius: 8px; position: fixed; top: 80px; right: 24px; z-index: 9999; min-width: 280px;';
+        div.innerHTML = `${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 3000);
+    }
 </script>
 }
-

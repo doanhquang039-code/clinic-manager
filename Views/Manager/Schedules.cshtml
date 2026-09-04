@@ -1,7 +1,7 @@
 @model List<MyMvcApp.Models.LichKham>
 @{
     ViewData["Title"] = "Quản lý Lịch khám";
-    Layout = "_PortalLayout";
+    Layout = "_ManagerLayout";
 
     var selectedDate = ViewBag.SelectedDate as DateTime? ?? DateTime.Today;
     var doctors = ViewBag.Doctors as List<MyMvcApp.Models.NguoiDung> ?? new();

@@ -1,78 +1,114 @@
 @model List<MyMvcApp.Models.BenhNhan>
 @{
-    ViewData["Title"] = "Quản lý Bệnh nhân";
-    Layout = "_PortalLayout";
+    ViewData["Title"] = "Hồ sơ Bệnh nhân";
+    Layout = "_ManagerLayout";
+    var search = ViewData["CurrentSearch"]?.ToString() ?? "";
+    var pageIndex = ViewBag.PageIndex as int? ?? 1;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var totalCount = ViewBag.TotalCount as int? ?? Model.Count;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-        <h4 style="font-weight:700;color:var(--admin-text-dark);margin-bottom:2px;">Quản lý Bệnh nhân</h4>
-        <div style="color:var(--admin-text-muted);font-size:0.9rem;">Tổng cộng @Model.Count bệnh nhân đã đăng ký</div>
+        <div class="mgr-page-title">Hồ sơ bệnh nhân</div>
+        <div class="mgr-page-sub">Hệ thống tra cứu dữ liệu hành chính, giám sát lượng khám và kiểm toán lịch sử bệnh án toàn phòng khám</div>
     </div>
+    <a href="#" class="mgr-btn-outline"><i class="fas fa-file-export"></i> Xuất báo cáo dữ liệu</a>
 </div>
 
-<div class="admin-table-container">
-    <form method="get" class="d-flex justify-content-between align-items-center p-3 border-bottom gap-3">
-        <div class="admin-search" style="flex:1;background:transparent;border:1px solid var(--admin-border);">
-            <i class="fas fa-search text-muted"></i>
-            <input type="text" name="search" value="@ViewData["CurrentSearch"]" placeholder="Tìm họ tên, email, số điện thoại..." />
+<!-- Filter bar -->
+<div class="mgr-table-container mb-0">
+    <form method="get" class="d-flex align-items-center gap-3 p-4" style="border-bottom:1px solid #eef0f4;flex-wrap:wrap;">
+        <div class="mgr-input-icon" style="flex:1;min-width:260px;">
+            <i class="fas fa-search"></i>
+            <input class="mgr-input" style="width:100%;padding-left:36px;" type="text" name="search"
+                   value="@search" placeholder="Tìm kiếm theo Mã BN, Họ tên, SĐT, CCCD..." />
         </div>
-        <button type="submit" class="btn btn-light" style="border:1px solid var(--admin-border);">
-            <i class="fas fa-search me-1"></i> Tìm kiếm
-        </button>
-        <a asp-action="Patients" class="btn btn-link text-muted" style="text-decoration:none;">Xóa lọc</a>
+        <select name="loaibn" class="mgr-input">
+            <option value="">Loại bệnh nhân</option>
+            <option value="all">Tất cả</option>
+        </select>
+        <select name="tthoadon" class="mgr-input">
+            <option value="">Trạng thái hóa đơn</option>
+            <option value="paid">Đã thanh toán</option>
+            <option value="unpaid">Chưa thanh toán</option>
+        </select>
+        <button type="submit" class="mgr-btn-primary"><i class="fas fa-search me-1"></i> Tìm</button>
+        <span style="color:#64748b;font-size:0.82rem;">@totalCount kết quả</span>
     </form>
 
-    <table class="admin-table">
+    <table class="mgr-table">
         <thead>
             <tr>
-                <th style="width:5%">MÃ</th>
-                <th style="width:25%">HỌ TÊN</th>
-                <th style="width:15%">NGÀY SINH / GT</th>
-                <th style="width:18%">LIÊN HỆ</th>
-                <th style="width:15%">CCCD</th>
-                <th style="width:12%">DỊ ỨNG</th>
-                <th style="width:10%">ĐĂNG KÝ</th>
+                <th>BỆNH NHÂN</th>
+                <th>THÔNG TIN HÀNH CHÍNH</th>
+                <th>CĂN CƯỚC CÔNG DÂN</th>
+                <th>ĐỊA CHỈ</th>
+                <th>TRẠNG THÁI HÓA ĐƠN</th>
+                <th style="text-align:center;">HÀNH ĐỘNG</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model)
             {
+                var initials = string.Join("", item.HoTen.Split(' ').TakeLast(2).Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
+                var colors = new[] { "#6366f1","#0ea5e9","#22c55e","#f59e0b","#ef4444","#8b5cf6" };
+                var bg = colors[Math.Abs(item.HoTen.GetHashCode()) % colors.Length];
                 <tr>
-                    <td style="color:#94a3b8;font-size:0.85rem;">BN-@item.MaBenhNhan.ToString("D5")</td>
                     <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="width:36px;height:36px;border-radius:50%;background:#fce7f3;color:#db2777;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;">
-                                @item.HoTen.Substring(0,1).ToUpper()
-                            </div>
-                            <div>
-                                <div style="font-weight:600;">@item.HoTen</div>
-                                <div style="font-size:0.75rem;color:#94a3b8;">@item.DiaChi</div>
-                            </div>
-                        </div>
+                        <div style="font-size:0.72rem;color:#94a3b8;margin-bottom:2px;">BN-@DateTime.Now.Year-@item.MaBenhNhan.ToString("D3")</div>
+                        <div style="font-weight:700;color:#1a1d23;">@item.HoTen</div>
                     </td>
-                    <td style="font-size:0.85rem;">
-                        <div>@item.NgaySinh.ToString("dd/MM/yyyy")</div>
-                        <div style="color:#94a3b8;">@item.GioiTinh</div>
-                    </td>
-                    <td style="font-size:0.85rem;">
-                        <div>@item.SoDienThoai</div>
-                        <div style="color:#94a3b8;font-size:0.8rem;">@item.Email</div>
-                    </td>
-                    <td style="font-size:0.85rem;color:#64748b;">@(item.CCCD ?? "-")</td>
                     <td>
-                        @if (!string.IsNullOrEmpty(item.DiUng))
+                        <div style="font-weight:500;">@item.SoDienThoai</div>
+                        <div style="font-size:0.78rem;color:#64748b;">@item.NgaySinh.ToString("yyyy") – @item.GioiTinh</div>
+                    </td>
+                    <td style="font-size:0.82rem;color:#475569;font-family:monospace;">@(item.CCCD ?? "—")</td>
+                    <td style="font-size:0.82rem;color:#64748b;max-width:160px;">@(item.DiaChi ?? "—")</td>
+                    <td>
+                        @{
+                            var lastInvoice = ViewBag.PatientInvoiceStatus as System.Collections.Generic.Dictionary<int, string>;
+                            var invStatus = lastInvoice != null && lastInvoice.ContainsKey(item.MaBenhNhan) ? lastInvoice[item.MaBenhNhan] : null;
+                        }
+                        @if (invStatus == "DaThanhToan")
                         {
-                            <span class="badge bg-danger-subtle text-danger" style="padding:0.4rem 0.7rem;border-radius:6px;">@item.DiUng</span>
+                            <span class="inv-paid">Đã thanh toán</span>
+                        }
+                        else if (invStatus == "ChuaThanhToan")
+                        {
+                            <span class="inv-unpaid">Chưa thanh toán</span>
                         }
                         else
                         {
-                            <span style="color:#94a3b8;font-size:0.85rem;">Không</span>
+                            <span style="color:#94a3b8;font-size:0.82rem;">—</span>
                         }
                     </td>
-                    <td style="font-size:0.8rem;color:#64748b;">@item.NgayTao?.ToString("dd/MM/yyyy")</td>
+                    <td style="text-align:center;">
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="#" class="action-btn" title="Xem hồ sơ"><i class="fas fa-eye"></i></a>
+                            <a href="#" class="action-btn" title="Tải xuống"><i class="fas fa-download"></i></a>
+                            <a href="#" class="action-btn danger" title="Xóa"><i class="fas fa-trash-alt"></i></a>
+                        </div>
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center px-4 py-3" style="border-top:1px solid #eef0f4;">
+        <div style="font-size:0.82rem;color:#64748b;">Hiển thị @Model.Count / @totalCount bệnh nhân</div>
+        <div class="mgr-pagination">
+            <a href="?search=@search&page=@(pageIndex-1)" class="mgr-page-btn @(pageIndex <= 1 ? "disabled" : "")">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            @for (int p = Math.Max(1, pageIndex - 2); p <= Math.Min(totalPages, pageIndex + 2); p++)
+            {
+                <a href="?search=@search&page=@p" class="mgr-page-btn @(p == pageIndex ? "active" : "")">@p</a>
+            }
+            <a href="?search=@search&page=@(pageIndex+1)" class="mgr-page-btn @(pageIndex >= totalPages ? "disabled" : "")">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
 </div>

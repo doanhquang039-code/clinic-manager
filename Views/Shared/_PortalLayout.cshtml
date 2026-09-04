@@ -89,6 +89,9 @@
                 <a asp-controller="Doctor" asp-action="History" class="admin-nav-item @(currentRoute == "History" ? "active" : "")">
                     <i class="fas fa-history"></i> Lịch sử ca khám
                 </a>
+                <a asp-controller="Doctor" asp-action="Profile" class="admin-nav-item @(currentRoute == "Profile" ? "active" : "")">
+                    <i class="fas fa-user-md"></i> Hồ sơ bác sĩ
+                </a>
             }
             else if (User.IsInRole("ThuNgan"))
             {

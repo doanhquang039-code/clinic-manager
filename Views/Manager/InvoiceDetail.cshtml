@@ -1,0 +1,213 @@
+@model MyMvcApp.Models.HoaDon
+@{
+    ViewData["Title"] = $"Chi Tiết Hóa Đơn HD-{Model.MaHoaDon:D5}";
+    Layout = "_ManagerLayout";
+    var phieu = Model.PhieuKham;
+    var benhnhan = phieu?.BenhNhan;
+    var bacsi = phieu?.BacSi;
+}
+
+<style>
+    .invoice-page { max-width: 900px; margin: 0 auto; }
+    .invoice-header-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; }
+    .invoice-logo { width: 52px; height: 52px; background: #0ea5e9; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .info-block { background: #f8fafc; border-radius: 12px; padding: 1.25rem 1.5rem; border: 1px solid #e2e8f0; }
+    .info-label { font-size: 0.78rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+    .info-value { font-weight: 600; color: #1e293b; font-size: 0.95rem; }
+    .section-card { background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; margin-bottom: 1.25rem; }
+    .section-title { font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .drug-table { width: 100%; border-collapse: collapse; }
+    .drug-table th { background: #f8fafc; padding: 0.6rem 0.75rem; text-align: left; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+    .drug-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+    .total-row { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border-radius: 12px; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .status-badge-paid { background: #dcfce7; color: #166534; padding: 0.5rem 1.25rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .status-badge-unpaid { background: #fef3c7; color: #92400e; padding: 0.5rem 1.25rem; border-radius: 20px; font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+
+    @@media print {
+        .no-print { display: none !important; }
+        .invoice-page { max-width: 100%; }
+        .section-card { box-shadow: none; border: 1px solid #ddd; }
+        body { background: white !important; }
+        .admin-sidebar, .admin-topbar { display: none !important; }
+        .admin-main { margin: 0 !important; padding: 1rem !important; }
+    }
+</style>
+
+<div class="invoice-page">
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <a asp-action="Invoices" class="text-decoration-none text-muted mb-1 d-inline-block">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+            <h4 class="fw-bold mb-0">Hóa Đơn HD-@Model.MaHoaDon.ToString("D5")</h4>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-secondary" style="border-radius: 8px;">
+                <i class="fas fa-print me-2"></i> In hóa đơn
+            </button>
+            @if (Model.TrangThaiThanhToan != "DaThanhToan")
+            {
+                <span class="status-badge-unpaid"><i class="fas fa-clock"></i> Chưa thanh toán</span>
+            }
+            else
+            {
+                <span class="status-badge-paid"><i class="fas fa-check-circle"></i> Đã thanh toán</span>
+            }
+        </div>
+    </div>
+
+    <!-- Invoice Header -->
+    <div class="invoice-header-card">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex gap-3 align-items-center">
+                <div class="invoice-logo"><i class="fas fa-heartbeat"></i></div>
+                <div>
+                    <div style="font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;">MediCore Clinic</div>
+                    <div style="opacity: 0.6; font-size: 0.85rem;">Phòng khám đa khoa chất lượng cao</div>
+                </div>
+            </div>
+            <div class="text-end">
+                <div style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 0.2rem;">Mã hóa đơn</div>
+                <div style="font-size: 1.6rem; font-weight: 800; letter-spacing: 0.05em;">HD-@Model.MaHoaDon.ToString("D5")</div>
+                <div style="font-size: 0.82rem; opacity: 0.7; margin-top: 0.2rem;">@Model.NgayLap?.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Bệnh nhân -->
+        <div class="col-md-6">
+            <div class="info-block h-100">
+                <div style="font-weight: 700; color: #0ea5e9; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+                    <i class="fas fa-user-injured me-1"></i> Thông Tin Bệnh Nhân
+                </div>
+                <div class="mb-2"><div class="info-label">Họ và tên</div><div class="info-value">@benhnhan?.HoTen</div></div>
+                <div class="row">
+                    <div class="col-6 mb-2">
+                        <div class="info-label">Ngày sinh</div>
+                        <div class="info-value">@benhnhan?.NgaySinh.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <div class="info-label">Giới tính</div>
+                        <div class="info-value">@benhnhan?.GioiTinh</div>
+                    </div>
+                </div>
+                <div class="mb-2"><div class="info-label">Điện thoại</div><div class="info-value">@(benhnhan?.SoDienThoai ?? "—")</div></div>
+            </div>
+        </div>
+
+        <!-- Bác sĩ + Phòng khám -->
+        <div class="col-md-6">
+            <div class="info-block h-100">
+                <div style="font-weight: 700; color: #22c55e; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">
+                    <i class="fas fa-user-md me-1"></i> Thông Tin Khám
+                </div>
+                <div class="mb-2"><div class="info-label">Bác sĩ điều trị</div><div class="info-value">@bacsi?.HoTen</div></div>
+                <div class="mb-2"><div class="info-label">Chuyên khoa</div><div class="info-value">@(bacsi?.ChuyenKhoa?.TenChuyenKhoa ?? "Đa khoa")</div></div>
+                <div class="mb-2"><div class="info-label">Chẩn đoán</div><div class="info-value" style="color: #0f172a;">@(phieu?.ChanDoan ?? "—")</div></div>
+                <div class="mb-2"><div class="info-label">Thu ngân lập</div><div class="info-value">@Model.NguoiLap?.HoTen</div></div>
+                <div><div class="info-label">Phương thức TT</div>
+                    <div class="info-value">
+                        @(Model.PhuongThucThanhToan == "TienMat" ? "💵 Tiền mặt" : Model.PhuongThucThanhToan == "ChuyenKhoan" ? "🏦 Chuyển khoản" : Model.PhuongThucThanhToan)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đơn thuốc -->
+    @if (phieu?.ChiTietDonThuocs != null && phieu.ChiTietDonThuocs.Count > 0)
+    {
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-pills text-success"></i> Đơn Thuốc</div>
+            <table class="drug-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tên thuốc</th>
+                        <th>ĐVT</th>
+                        <th style="text-align:center;">SL</th>
+                        <th style="text-align:right;">Đơn giá</th>
+                        <th style="text-align:right;">Thành tiền</th>
+                        <th>Liều dùng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int idx = 1; }
+                    @foreach (var ct in phieu.ChiTietDonThuocs)
+                    {
+                        <tr>
+                            <td style="color: #94a3b8;">@idx</td>
+                            <td style="font-weight: 600;">@ct.Thuoc?.TenThuoc</td>
+                            <td style="color: #64748b;">@ct.Thuoc?.DonViTinh</td>
+                            <td style="text-align:center; font-weight: 600;">@ct.SoLuong</td>
+                            <td style="text-align:right; color: #0ea5e9;">@String.Format("{0:N0}", ct.DonGia)đ</td>
+                            <td style="text-align:right; font-weight: 700;">@String.Format("{0:N0}", ct.DonGia * ct.SoLuong)đ</td>
+                            <td style="color: #64748b; font-size: 0.85rem;">@(ct.LieuDung ?? "—")</td>
+                        </tr>
+                        idx++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <!-- Chi tiết dịch vụ -->
+    @if (phieu?.ChiTietDichVus != null && phieu.ChiTietDichVus.Count > 0)
+    {
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-concierge-bell text-warning"></i> Dịch Vụ Sử Dụng</div>
+            <table class="drug-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Dịch vụ</th>
+                        <th style="text-align:center;">SL</th>
+                        <th style="text-align:right;">Đơn giá</th>
+                        <th style="text-align:right;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int svc = 1; }
+                    @foreach (var ct in phieu.ChiTietDichVus)
+                    {
+                        <tr>
+                            <td style="color: #94a3b8;">@svc</td>
+                            <td style="font-weight: 600;">@ct.DichVu?.TenDichVu</td>
+                            <td style="text-align:center;">@ct.SoLuong</td>
+                            <td style="text-align:right; color: #0ea5e9;">@String.Format("{0:N0}", ct.DonGia)đ</td>
+                            <td style="text-align:right; font-weight: 700;">@String.Format("{0:N0}", ct.DonGia * ct.SoLuong)đ</td>
+                        </tr>
+                        svc++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <!-- Tổng kết -->
+    <div class="section-card">
+        <div class="d-flex justify-content-end">
+            <div style="min-width: 320px;">
+                <div class="d-flex justify-content-between py-2" style="border-bottom: 1px solid #f1f5f9;">
+                    <span class="text-muted">Tiền dịch vụ:</span>
+                    <strong>@String.Format("{0:N0}", Model.TienDichVu)đ</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2" style="border-bottom: 1px solid #f1f5f9;">
+                    <span class="text-muted">Tiền thuốc:</span>
+                    <strong>@String.Format("{0:N0}", Model.TienThuoc)đ</strong>
+                </div>
+                <div class="total-row mt-3">
+                    <span style="font-weight: 600; font-size: 1rem;">TỔNG CỘNG</span>
+                    <span style="font-size: 1.4rem; font-weight: 800;">@String.Format("{0:N0}", Model.TongTien)đ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center text-muted no-print mt-2" style="font-size: 0.82rem;">
+        <i class="fas fa-info-circle me-1"></i> Cảm ơn quý bệnh nhân đã tin tưởng sử dụng dịch vụ của MediCore Clinic!
+    </div>
+</div>
+

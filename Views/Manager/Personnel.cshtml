@@ -1,161 +1,284 @@
 @model List<MyMvcApp.Models.NguoiDung>
 @{
     ViewData["Title"] = "Quản lý Nhân sự";
-    Layout = "_PortalLayout";
+    Layout = "_ManagerLayout";
     var specialties = ViewBag.Specialties as List<MyMvcApp.Models.ChuyenKhoa> ?? new();
+    var search = ViewData["CurrentSearch"]?.ToString() ?? "";
+    var roleFilter = ViewData["CurrentRole"]?.ToString() ?? "";
+    var pageIndex = ViewBag.PageIndex as int? ?? 1;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var totalCount = ViewBag.TotalCount as int? ?? Model.Count;
 
-    string RoleBadge(string role) => role switch {
-        "Admin" => "bg-danger",
-        "Manager" => "bg-primary",
-        "BacSi" => "bg-success",
-        "ThuNgan" => "bg-warning text-dark",
-        _ => "bg-secondary"
+    string RoleClass(string r) => r switch {
+        "BacSi" => "rb-doctor", "Manager" => "rb-manager",
+        "ThuNgan" => "rb-cashier", _ => "rb-staff"
     };
-    string RoleLabel(string role) => role switch {
-        "Admin" => "Admin",
-        "Manager" => "Quản lý",
-        "BacSi" => "Bác sĩ",
-        "ThuNgan" => "Thu ngân",
-        _ => role
+    string RoleLabel(string r) => r switch {
+        "BacSi" => "DOCTOR", "Manager" => "MANAGER",
+        "ThuNgan" => "THU_NGAN", "LeTan" => "LE_TAN", _ => r
     };
+    string AvatarColor(string name) {
+        var colors = new[] { "#6366f1","#0ea5e9","#22c55e","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6" };
+        return colors[Math.Abs(name.GetHashCode()) % colors.Length];
+    }
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-        <h4 style="font-weight: 700; color: var(--admin-text-dark); margin-bottom: 2px;">Quản lý Nhân sự</h4>
-        <div style="color: var(--admin-text-muted); font-size: 0.9rem;">Tổng cộng @Model.Count nhân viên</div>
+        <div class="mgr-page-title">Quản lý nhân sự</div>
+        <div class="mgr-page-sub">
+            Quản lý hồ sơ, lịch trực và phân quyền hệ thống cho toàn bộ
+            <strong>@totalCount tài khoản</strong>
+            <a href="#" style="color:#1a237e;"> nguoidung</a> .
+        </div>
     </div>
-    <button class="btn" data-bs-toggle="modal" data-bs-target="#createStaffModal"
-            style="background: var(--admin-sidebar-bg); color: white; border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500;">
-        <i class="fas fa-plus me-2"></i> Thêm nhân viên
+    <button class="mgr-btn-primary" data-bs-toggle="modal" data-bs-target="#createStaffModal">
+        <i class="fas fa-plus"></i> Thêm nhân viên
     </button>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" style="border-radius:8px;">@TempData["SuccessMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div class="alert alert-success alert-dismissible fade show mb-4" style="border-radius:10px;border:none;background:#dcfce7;color:#166534;">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show" style="border-radius:8px;">@TempData["ErrorMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div class="alert alert-danger alert-dismissible fade show mb-4" style="border-radius:10px;border:none;">
+        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
 
-<div class="admin-table-container">
-    <form method="get" class="d-flex justify-content-between align-items-center p-3 border-bottom gap-3">
-        <div class="admin-search" style="flex:1; background:transparent; border:1px solid var(--admin-border);">
-            <i class="fas fa-search text-muted"></i>
-            <input type="text" name="search" value="@ViewData["CurrentSearch"]" placeholder="Tìm họ tên, email, SĐT..." />
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#eef2ff;">
+                <i class="fas fa-users" style="color:#6366f1;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Tổng nhân viên</div>
+                <div class="mgr-stat-value">@ViewBag.TotalStaff</div>
+                <div class="mgr-stat-sub mgr-stat-trend-neutral">người</div>
+            </div>
         </div>
-        <select name="roleFilter" class="form-select" style="width:180px; border:1px solid var(--admin-border);" onchange="this.form.submit()">
-            <option value="">Tất cả vai trò</option>
-            <option value="BacSi" selected="@(ViewData["CurrentRole"]?.ToString()=="BacSi")">Bác sĩ</option>
-            <option value="ThuNgan" selected="@(ViewData["CurrentRole"]?.ToString()=="ThuNgan")">Thu ngân</option>
-            <option value="LeTan" selected="@(ViewData["CurrentRole"]?.ToString()=="LeTan")">Lễ tân</option>
-        </select>
-        <button type="submit" class="btn btn-light" style="border:1px solid var(--admin-border);">Lọc</button>
-        <a asp-action="Personnel" class="btn btn-link text-muted" style="text-decoration:none;">Xóa lọc</a>
-    </form>
+    </div>
+    <div class="col-md-3">
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#f0fdf4;">
+                <i class="fas fa-user-check" style="color:#22c55e;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Đang làm việc</div>
+                <div class="mgr-stat-value">@ViewBag.ActiveStaff</div>
+                <div class="mgr-stat-sub mgr-stat-trend-up">người</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#fffbeb;">
+                <i class="fas fa-user-md" style="color:#f59e0b;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Bác sĩ</div>
+                <div class="mgr-stat-value">@ViewBag.DoctorCount</div>
+                <div class="mgr-stat-sub mgr-stat-trend-neutral">người</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="mgr-stat-card">
+            <div class="mgr-stat-icon" style="background:#fff1f2;">
+                <i class="fas fa-user-times" style="color:#ef4444;"></i>
+            </div>
+            <div>
+                <div class="mgr-stat-label">Tài khoản bị khóa</div>
+                <div class="mgr-stat-value">@ViewBag.InactiveStaff</div>
+                <div class="mgr-stat-sub mgr-stat-trend-warn">người</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <table class="admin-table">
+<!-- Table Container -->
+<div class="mgr-table-container">
+    <div class="mgr-table-header">
+        <!-- Search -->
+        <div class="mgr-input-icon" style="flex:1;max-width:320px;">
+            <i class="fas fa-search"></i>
+            <form method="get" id="filterForm">
+                <input type="hidden" name="roleFilter" value="@roleFilter" />
+                <input class="mgr-input" style="width:100%;" type="text" name="search"
+                       value="@search" placeholder="Tìm tên, mã NV, email, chức vụ..." />
+            </form>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="mgr-tabs ms-2">
+            <a href="?search=@search" class="mgr-tab @(roleFilter == "" ? "active" : "")">
+                Tất cả <span class="count">@ViewBag.TotalStaff</span>
+            </a>
+            <a href="?search=@search&roleFilter=BacSi" class="mgr-tab @(roleFilter == "BacSi" ? "active" : "")">
+                Bác sĩ <span class="count">@ViewBag.DoctorCount</span>
+            </a>
+            <a href="?search=@search&roleFilter=ThuNgan" class="mgr-tab @(roleFilter == "ThuNgan" ? "active" : "")">
+                Thu ngân
+            </a>
+            <a href="?search=@search&roleFilter=LeTan" class="mgr-tab @(roleFilter == "LeTan" ? "active" : "")">
+                Lễ tân
+            </a>
+        </div>
+    </div>
+
+    <table class="mgr-table">
         <thead>
             <tr>
-                <th style="width:5%">#</th>
-                <th style="width:28%">HỌ TÊN</th>
-                <th style="width:20%">EMAIL / SĐT</th>
-                <th style="width:15%">VAI TRÒ</th>
-                <th style="width:15%">CHUYÊN KHOA</th>
-                <th style="width:10%">TRẠNG THÁI</th>
-                <th style="width:7%; text-align:center">THAO TÁC</th>
+                <th>NHÂN VIÊN</th>
+                <th>CHỨC VỤ & KHOA</th>
+                <th>EMAIL / SĐT</th>
+                <th>TRẠNG THÁI</th>
+                <th style="text-align:center;">HÀNH ĐỘNG</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model)
             {
+                var initials = string.Join("", item.HoTen.Split(' ').TakeLast(2).Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
                 <tr>
-                    <td style="color:#94a3b8; font-size:0.85rem;">@item.MaNguoiDung</td>
                     <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="width:36px;height:36px;border-radius:50%;background:#e0e7ff;color:#6366f1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;">
-                                @item.HoTen.Substring(0,1).ToUpper()
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width:38px;height:38px;border-radius:50%;background:@AvatarColor(item.HoTen);
+                                        color:white;display:flex;align-items:center;justify-content:center;
+                                        font-weight:700;font-size:0.85rem;flex-shrink:0;">
+                                @initials
                             </div>
                             <div>
-                                <div style="font-weight:600;">@item.HoTen</div>
-                                <div style="font-size:0.75rem;color:#94a3b8;">Tham gia: @item.NgayTao?.ToString("dd/MM/yyyy")</div>
+                                <div style="font-weight:600;color:#1a1d23;">@item.HoTen</div>
+                                <div style="font-size:0.72rem;color:#94a3b8;">Mã NV: NV-@item.MaNguoiDung.ToString("D3")</div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <div style="font-size:0.85rem;">@item.Email</div>
-                        <div style="font-size:0.8rem;color:#94a3b8;">@item.SoDienThoai</div>
+                        <span class="role-badge @RoleClass(item.Role)">@RoleLabel(item.Role)</span>
+                        @if (item.ChuyenKhoa != null)
+                        {
+                            <div style="font-size:0.75rem;color:#64748b;margin-top:3px;">
+                                Chuyên khoa: @item.MaChuyenKhoa – @item.ChuyenKhoa.TenChuyenKhoa
+                            </div>
+                        }
                     </td>
-                    <td><span class="badge @RoleBadge(item.Role)" style="padding:0.4rem 0.8rem;">@RoleLabel(item.Role)</span></td>
-                    <td style="font-size:0.85rem;color:#64748b;">@(item.ChuyenKhoa?.TenChuyenKhoa ?? "-")</td>
+                    <td>
+                        <div style="color:#1a1d23;font-size:0.85rem;">@item.Email</div>
+                        <div style="font-size:0.78rem;color:#64748b;">@item.SoDienThoai</div>
+                    </td>
                     <td>
                         @if (item.TrangThai)
                         {
-                            <span style="color:#22c55e;font-weight:600;font-size:0.85rem;"><i class="fas fa-circle" style="font-size:0.5rem;vertical-align:middle;margin-right:4px;"></i> Hoạt động</span>
+                            <span class="status-dot"><span class="dot dot-green"></span> Đang làm việc</span>
                         }
                         else
                         {
-                            <span style="color:#ef4444;font-weight:600;font-size:0.85rem;"><i class="fas fa-circle" style="font-size:0.5rem;vertical-align:middle;margin-right:4px;"></i> Bị khóa</span>
+                            <span class="status-dot"><span class="dot dot-red"></span> Bị khóa</span>
                         }
                     </td>
                     <td style="text-align:center;">
-                        <form asp-action="UpdateStaffStatus" method="post" style="display:inline;"
-                              onsubmit="return confirm('@(item.TrangThai ? "Bạn có chắc muốn KHÓA tài khoản" : "Bạn có chắc muốn MỞ KHÓA tài khoản") @item.HoTen?')">
-                            <input type="hidden" name="id" value="@item.MaNguoiDung" />
-                            <input type="hidden" name="status" value="@(!item.TrangThai ? "True" : "False")" />
-                            <button type="submit" class="btn btn-sm @(item.TrangThai ? "btn-outline-danger" : "btn-outline-success")" style="border-radius:6px;"
-                                    title="@(item.TrangThai ? "Khóa tài khoản" : "Mở khóa tài khoản")">
-                                <i class="fas @(item.TrangThai ? "fa-lock" : "fa-lock-open")"></i>
-                                <span style="font-size:0.75rem; margin-left: 3px;">@(item.TrangThai ? "Khóa" : "Mở")</span>
+                        <div class="d-flex gap-1 justify-content-center">
+                            <!-- Edit -->
+                            <button class="action-btn" title="Chỉnh sửa"
+                                    onclick="openEditStaff(@item.MaNguoiDung, '@item.HoTen.Replace("'","\\'")', '@item.SoDienThoai', '@item.Email', @(item.MaChuyenKhoa?.ToString() ?? "null"))">
+                                <i class="fas fa-edit"></i>
                             </button>
-                        </form>
+                            <!-- Reset password -->
+                            <form asp-action="ResetPassword" method="post" style="display:inline;"
+                                  onsubmit="return confirm('Đặt lại mật khẩu @item.HoTen.Replace("'","\'") về 123456?')">
+                                <input type="hidden" name="id" value="@item.MaNguoiDung" />
+                                <button type="submit" class="action-btn" title="Đặt lại mật khẩu">
+                                    <i class="fas fa-key"></i>
+                                </button>
+                            </form>
+                            <!-- Toggle status -->
+                            <form asp-action="UpdateStaffStatus" method="post" style="display:inline;"
+                                  onsubmit="return confirm('@(item.TrangThai ? "Khóa" : "Mở khóa") tài khoản @item.HoTen.Replace("'","\'")?"  )">
+                                <input type="hidden" name="id" value="@item.MaNguoiDung" />
+                                <input type="hidden" name="status" value="@(!item.TrangThai ? "True" : "False")" />
+                                <button type="submit" class="action-btn @(item.TrangThai ? "danger" : "")"
+                                        title="@(item.TrangThai ? "Khóa tài khoản" : "Mở khóa")">
+                                    <i class="fas @(item.TrangThai ? "fa-lock" : "fa-lock-open")"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center px-4 py-3" style="border-top:1px solid #eef0f4;">
+        <div style="font-size:0.82rem;color:#64748b;">
+            Hiển thị @Model.Count / @totalCount nhân viên
+        </div>
+        <div class="mgr-pagination">
+            <a href="?search=@search&roleFilter=@roleFilter&page=@(pageIndex-1)"
+               class="mgr-page-btn @(pageIndex <= 1 ? "disabled" : "")">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            @for (int p = 1; p <= totalPages; p++)
+            {
+                <a href="?search=@search&roleFilter=@roleFilter&page=@p"
+                   class="mgr-page-btn @(p == pageIndex ? "active" : "")">@p</a>
+            }
+            <a href="?search=@search&roleFilter=@roleFilter&page=@(pageIndex+1)"
+               class="mgr-page-btn @(pageIndex >= totalPages ? "disabled" : "")">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
 </div>
 
-<!-- Modal thêm nhân viên -->
+<!-- Modal Thêm nhân viên -->
 <div class="modal fade" id="createStaffModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content" style="border-radius:12px;border:none;">
-            <div class="modal-header" style="background:var(--admin-sidebar-bg);color:white;border-radius:12px 12px 0 0;">
-                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i> Thêm nhân viên mới</h5>
+        <div class="modal-content" style="border-radius:14px;border:none;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background:#1a237e;color:white;border-radius:14px 14px 0 0;padding:18px 24px;">
+                <h5 class="modal-title fw-700"><i class="fas fa-user-plus me-2"></i>Thêm nhân viên mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="CreateStaff" method="post">
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Họ và tên *</label>
-                            <input name="HoTen" class="form-control" style="border-radius:8px;" required />
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Họ và tên *</label>
+                            <input name="HoTen" class="mgr-input" style="width:100%;" required placeholder="Nhập họ tên đầy đủ" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Số điện thoại *</label>
-                            <input name="SoDienThoai" class="form-control" style="border-radius:8px;" required />
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Số điện thoại</label>
+                            <input name="SoDienThoai" class="mgr-input" style="width:100%;" placeholder="0xxx xxx xxx" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Email *</label>
-                            <input name="Email" type="email" class="form-control" style="border-radius:8px;" required />
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Email *</label>
+                            <input name="Email" type="email" class="mgr-input" style="width:100%;" required placeholder="email@medicore.com" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Mật khẩu (mặc định: 123456)</label>
-                            <input name="MatKhau" class="form-control" style="border-radius:8px;" placeholder="123456" />
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Mật khẩu (mặc định: 123456)</label>
+                            <input name="MatKhau" class="mgr-input" style="width:100%;" placeholder="Để trống = 123456" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Vai trò *</label>
-                            <select name="Role" class="form-select" style="border-radius:8px;" required>
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Vai trò *</label>
+                            <select name="Role" class="mgr-input" style="width:100%;" required>
                                 <option value="BacSi">Bác sĩ</option>
                                 <option value="ThuNgan">Thu ngân</option>
-                                <option value="Manager">Quản lý</option>
+                                <option value="LeTan">Lễ tân</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Chuyên khoa (Bác sĩ)</label>
-                            <select name="MaChuyenKhoa" class="form-select" style="border-radius:8px;">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Chuyên khoa (Bác sĩ)</label>
+                            <select name="MaChuyenKhoa" class="mgr-input" style="width:100%;">
                                 <option value="">-- Không áp dụng --</option>
                                 @foreach (var spec in specialties)
                                 {
@@ -165,13 +288,74 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn" style="background:var(--admin-sidebar-bg);color:white;border-radius:8px;">
-                        <i class="fas fa-save me-2"></i> Lưu nhân viên
-                    </button>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="mgr-btn-outline" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="mgr-btn-primary"><i class="fas fa-save me-1"></i> Lưu nhân viên</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Modal Chỉnh sửa nhân viên -->
+<div class="modal fade" id="editStaffModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:14px;border:none;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border-radius:14px 14px 0 0;padding:18px 24px;">
+                <h5 class="modal-title fw-700"><i class="fas fa-user-edit me-2"></i>Chỉnh sửa thông tin</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditStaff" method="post">
+                <input type="hidden" id="editStaffId" name="id" />
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Họ và tên *</label>
+                            <input id="editHoTen" name="HoTen" class="mgr-input" style="width:100%;" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Số điện thoại</label>
+                            <input id="editSoDienThoai" name="SoDienThoai" class="mgr-input" style="width:100%;" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Email</label>
+                            <input id="editEmail" name="Email" type="email" class="mgr-input" style="width:100%;" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Chuyên khoa</label>
+                            <select id="editMaChuyenKhoa" name="MaChuyenKhoa" class="mgr-input" style="width:100%;">
+                                <option value="">-- Không áp dụng --</option>
+                                @foreach (var spec in specialties)
+                                {
+                                    <option value="@spec.MaChuyenKhoa">@spec.TenChuyenKhoa</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="mgr-btn-outline" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="mgr-btn-primary"><i class="fas fa-save me-1"></i> Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function openEditStaff(id, hoTen, sdt, email, maChuyenKhoa) {
+    document.getElementById('editStaffId').value = id;
+    document.getElementById('editHoTen').value = hoTen;
+    document.getElementById('editSoDienThoai').value = sdt !== 'null' ? sdt : '';
+    document.getElementById('editEmail').value = email !== 'null' ? email : '';
+    var ck = document.getElementById('editMaChuyenKhoa');
+    ck.value = (maChuyenKhoa && maChuyenKhoa !== 'null') ? maChuyenKhoa : '';
+    new bootstrap.Modal(document.getElementById('editStaffModal')).show();
+}
+// Auto-submit search
+document.querySelector('input[name="search"]')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('filterForm').submit();
+});
+</script>
+}
